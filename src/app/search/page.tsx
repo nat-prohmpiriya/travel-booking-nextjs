@@ -96,7 +96,7 @@ export default function SearchResults() {
         await searchHotels();
     };
 
-    const handleFilterChange = (key: keyof SearchFilters, value: any) => {
+    const handleFilterChange = (key: keyof SearchFilters, value: string[] | number | [number, number] | number[]) => {
         const newFilters = { ...currentFilters, [key]: value };
         setStoreFilters(newFilters);
         // Trigger search with new filters
@@ -305,12 +305,11 @@ export default function SearchResults() {
                                     onClick={() => handleBookHotel(hotel.id)}
                                 >
                                     <Row gutter={16}>
-                                        <Col xs={24} sm={8}>
-                                            <img
-                                                src={hotel.imageUrl}
-                                                alt={hotel.name}
-                                                className="w-full h-48 object-cover rounded-lg"
-                                            />
+                                        <Col xs={24} sm={8}>                                <img
+                                            src={hotel.imageUrl}
+                                            alt={hotel.name}
+                                            className="w-full h-48 object-cover rounded-lg"
+                                        />
                                         </Col>
                                         <Col xs={24} sm={16}>
                                             <div className="flex justify-between items-start mb-2">
