@@ -1,9 +1,9 @@
-import { 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    signInWithPopup, 
-    GoogleAuthProvider, 
-    signOut, 
+import {
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signInWithPopup,
+    GoogleAuthProvider,
+    signOut,
     User,
     updateProfile
 } from 'firebase/auth';
@@ -18,11 +18,11 @@ export const authService = {
     // Email/Password Sign Up
     async signUp(data: SignUpData): Promise<User> {
         const { user } = await createUserWithEmailAndPassword(
-            firebaseAuth, 
-            data.email, 
+            firebaseAuth,
+            data.email,
             data.password
         );
-        
+
         // Update user profile with name
         await updateProfile(user, {
             displayName: data.name
@@ -45,8 +45,8 @@ export const authService = {
     // Email/Password Sign In
     async signIn(data: SignInData): Promise<User> {
         const { user } = await signInWithEmailAndPassword(
-            firebaseAuth, 
-            data.email, 
+            firebaseAuth,
+            data.email,
             data.password
         );
         return user;
@@ -55,7 +55,7 @@ export const authService = {
     // Google Sign In
     async signInWithGoogle(): Promise<User> {
         const { user } = await signInWithPopup(firebaseAuth, googleProvider);
-        
+
         // Check if user exists in Firestore, if not create profile
         const existingProfile = await userService.getUserProfile(user.uid);
         if (!existingProfile) {
@@ -69,7 +69,7 @@ export const authService = {
 
             await userService.createUserProfile(userProfileData);
         }
-        
+
         return user;
     },
 

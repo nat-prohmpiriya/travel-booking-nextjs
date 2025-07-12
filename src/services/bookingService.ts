@@ -1,8 +1,8 @@
-import { 
-    doc, 
-    setDoc, 
-    getDoc, 
-    updateDoc, 
+import {
+    doc,
+    setDoc,
+    getDoc,
+    updateDoc,
     deleteDoc,
     collection,
     query,
@@ -14,11 +14,11 @@ import {
     Timestamp
 } from 'firebase/firestore';
 import { firebaseDb } from '@/utils/firebaseInit';
-import { 
-    Booking, 
-    CreateBookingData, 
-    UpdateBookingData, 
-    BookingFilters 
+import {
+    Booking,
+    CreateBookingData,
+    UpdateBookingData,
+    BookingFilters
 } from '@/types';
 
 export const bookingService = {
@@ -33,7 +33,7 @@ export const bookingService = {
     async createBooking(data: CreateBookingData): Promise<Booking> {
         const bookingRef = doc(collection(firebaseDb, 'bookings'));
         const confirmationCode = this.generateConfirmationCode();
-        
+
         // Calculate cancellation deadline (24 hours before check-in)
         const cancellationDeadline = new Date(data.checkIn);
         cancellationDeadline.setHours(cancellationDeadline.getHours() - 24);
@@ -70,7 +70,7 @@ export const bookingService = {
         };
 
         await setDoc(bookingRef, booking);
-        
+
         // Simulate payment processing
         setTimeout(async () => {
             try {
@@ -88,11 +88,11 @@ export const bookingService = {
     async getBooking(bookingId: string): Promise<Booking | null> {
         try {
             const bookingDoc = await getDoc(doc(firebaseDb, 'bookings', bookingId));
-            
+
             if (bookingDoc.exists()) {
                 return bookingDoc.data() as Booking;
             }
-            
+
             return null;
         } catch (error) {
             console.error('Error getting booking:', error);
@@ -106,12 +106,12 @@ export const bookingService = {
             const bookingsRef = collection(firebaseDb, 'bookings');
             const q = query(bookingsRef, where('confirmationCode', '==', confirmationCode));
             const querySnapshot = await getDocs(q);
-            
+
             if (!querySnapshot.empty) {
                 const bookingDoc = querySnapshot.docs[0];
                 return bookingDoc.data() as Booking;
             }
-            
+
             return null;
         } catch (error) {
             console.error('Error getting booking by confirmation code:', error);
@@ -152,7 +152,7 @@ export const bookingService = {
 
             if (filters?.search) {
                 const searchTerm = filters.search.toLowerCase();
-                bookings = bookings.filter(booking => 
+                bookings = bookings.filter(booking =>
                     booking.hotelName.toLowerCase().includes(searchTerm) ||
                     booking.confirmationCode.toLowerCase().includes(searchTerm) ||
                     booking.hotelLocation.toLowerCase().includes(searchTerm)
@@ -246,7 +246,7 @@ export const bookingService = {
             // Check if cancellation is allowed
             const now = new Date();
             const cancellationDeadline = booking.policies.cancellationDeadline.toDate();
-            
+
             if (now > cancellationDeadline) {
                 throw new Error('Cancellation deadline has passed');
             }
@@ -377,7 +377,7 @@ export const bookingService = {
 
             if (filters?.search) {
                 const searchTerm = filters.search.toLowerCase();
-                bookings = bookings.filter(booking => 
+                bookings = bookings.filter(booking =>
                     booking.hotelName.toLowerCase().includes(searchTerm) ||
                     booking.confirmationCode.toLowerCase().includes(searchTerm) ||
                     booking.hotelLocation.toLowerCase().includes(searchTerm) ||

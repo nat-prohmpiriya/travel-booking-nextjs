@@ -1,7 +1,7 @@
-import { 
-    ref, 
-    uploadBytes, 
-    getDownloadURL, 
+import {
+    ref,
+    uploadBytes,
+    getDownloadURL,
     deleteObject,
     uploadBytesResumable,
     getMetadata
@@ -12,8 +12,8 @@ import { UploadProgress, UploadResult } from '@/types';
 export const storageService = {
     // Upload profile picture
     async uploadProfilePicture(
-        userId: string, 
-        file: File, 
+        userId: string,
+        file: File,
         onProgress?: (progress: UploadProgress) => void
     ): Promise<UploadResult> {
         try {
@@ -40,7 +40,7 @@ export const storageService = {
             // Upload with progress tracking
             if (onProgress) {
                 const uploadTask = uploadBytesResumable(storageRef, file);
-                
+
                 return new Promise((resolve, reject) => {
                     uploadTask.on(
                         'state_changed',
@@ -60,7 +60,7 @@ export const storageService = {
                             try {
                                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                                 const metadata = await getMetadata(uploadTask.snapshot.ref);
-                                
+
                                 resolve({
                                     url: downloadURL,
                                     fullPath: filePath,
@@ -109,7 +109,7 @@ export const storageService = {
 
                 if (onProgress) {
                     const uploadTask = uploadBytesResumable(storageRef, file);
-                    
+
                     return new Promise<UploadResult>((resolve, reject) => {
                         uploadTask.on(
                             'state_changed',
@@ -126,7 +126,7 @@ export const storageService = {
                                 try {
                                     const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                                     const metadata = await getMetadata(uploadTask.snapshot.ref);
-                                    
+
                                     resolve({
                                         url: downloadURL,
                                         fullPath: filePath,

@@ -1,8 +1,8 @@
-import { 
-    doc, 
-    setDoc, 
-    getDoc, 
-    updateDoc, 
+import {
+    doc,
+    setDoc,
+    getDoc,
+    updateDoc,
     deleteDoc,
     collection,
     query,
@@ -18,19 +18,19 @@ import {
     arrayRemove
 } from 'firebase/firestore';
 import { firebaseDb } from '@/utils/firebaseInit';
-import { 
-    Hotel, 
-    HotelRoom, 
-    SearchFilters, 
-    CreateHotelData, 
-    UpdateHotelData 
+import {
+    Hotel,
+    HotelRoom,
+    SearchFilters,
+    CreateHotelData,
+    UpdateHotelData
 } from '@/types';
 
 export const hotelService = {
     // Create hotel
     async createHotel(data: CreateHotelData): Promise<Hotel> {
         const hotelRef = doc(collection(firebaseDb, 'hotels'));
-        
+
         const hotel: Hotel = {
             id: hotelRef.id,
             name: data.name,
@@ -62,11 +62,11 @@ export const hotelService = {
     async getHotel(hotelId: string): Promise<Hotel | null> {
         try {
             const hotelDoc = await getDoc(doc(firebaseDb, 'hotels', hotelId));
-            
+
             if (hotelDoc.exists()) {
                 return hotelDoc.data() as Hotel;
             }
-            
+
             return null;
         } catch (error) {
             console.error('Error getting hotel:', error);
@@ -108,8 +108,8 @@ export const hotelService = {
 
             // Client-side filtering for complex filters
             if (filters.priceRange) {
-                hotels = hotels.filter(hotel => 
-                    hotel.priceRange.min >= filters.priceRange![0] && 
+                hotels = hotels.filter(hotel =>
+                    hotel.priceRange.min >= filters.priceRange![0] &&
                     hotel.priceRange.max <= filters.priceRange![1]
                 );
             }
@@ -119,7 +119,7 @@ export const hotelService = {
             }
 
             if (filters.amenities && filters.amenities.length > 0) {
-                hotels = hotels.filter(hotel => 
+                hotels = hotels.filter(hotel =>
                     filters.amenities!.every(amenity => hotel.amenities.includes(amenity))
                 );
             }
@@ -151,7 +151,7 @@ export const hotelService = {
     },
 
     // Get popular destinations
-    async getPopularDestinations(limitCount: number = 10): Promise<Array<{id: string, name: string, count: number, image: string}>> {
+    async getPopularDestinations(limitCount: number = 10): Promise<Array<{ id: string, name: string, count: number, image: string }>> {
         try {
             const hotelsQuery = query(
                 collection(firebaseDb, 'hotels'),
@@ -162,8 +162,8 @@ export const hotelService = {
             const hotels = querySnapshot.docs.map(doc => doc.data() as Hotel);
 
             // Group by city and count
-            const cityMap = new Map<string, {count: number, image: string}>();
-            
+            const cityMap = new Map<string, { count: number, image: string }>();
+
             hotels.forEach(hotel => {
                 const existing = cityMap.get(hotel.city);
                 if (existing) {

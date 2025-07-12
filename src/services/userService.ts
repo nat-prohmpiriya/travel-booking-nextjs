@@ -13,10 +13,10 @@ import {
 } from 'firebase/firestore';
 import { firebaseDb } from '@/utils/firebaseInit';
 import { orderBy as firestoreOrderBy } from 'firebase/firestore';
-import { 
-    UserProfile, 
-    CreateUserProfileData, 
-    UpdateUserProfileData 
+import {
+    UserProfile,
+    CreateUserProfileData,
+    UpdateUserProfileData
 } from '@/types';
 
 export const userService = {
