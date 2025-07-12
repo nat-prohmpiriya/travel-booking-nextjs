@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthLayout } from '@/components/auth-layout';
 import { SocialLoginButtons } from '@/components/social-login-buttons';
-import { authService, SignInData } from '@/services/auth';
+import { authService, } from '@/services/authService';
 
 export default function SignInPage() {
     const [form] = Form.useForm();

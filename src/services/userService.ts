@@ -29,6 +29,7 @@ export const userService = {
             lastName: data.lastName,
             phone: data.phone,
             photoURL: data.photoURL,
+            role: data.role ?? 'user', // default to 'user' if not provided
             preferences: {
                 currency: 'THB',
                 language: 'en',

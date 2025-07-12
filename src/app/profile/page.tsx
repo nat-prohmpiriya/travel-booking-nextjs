@@ -25,8 +25,6 @@ import {
     EditOutlined,
     CameraOutlined,
     SafetyCertificateOutlined,
-    BellOutlined,
-    GlobalOutlined,
     HomeOutlined,
     MailOutlined,
     PhoneOutlined,
@@ -35,9 +33,10 @@ import {
 } from '@ant-design/icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { authService } from '@/services/auth';
-import { userService, UserProfile, UpdateUserProfileData } from '@/services/userService';
-import { storageService, UploadProgress } from '@/services/storageService';
+import { userService } from '@/services/userService';
+import { UserProfile, UpdateUserProfileData } from '@/types/user';
+import { storageService, } from '@/services/storageService';
+import { UploadProgress } from '@/types';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 
@@ -58,7 +57,7 @@ export default function ProfilePage() {
     const [uploading, setUploading] = useState<boolean>(false);
 
     useEffect(() => {
-        if (!user) {
+        if (!userProfile) {
             router.push('/auth/signin');
             return;
         }
@@ -99,7 +98,21 @@ export default function ProfilePage() {
 
             // Update local state
             if (profileData) {
-                setProfileData({ ...profileData, ...updateData });
+                setProfileData({
+                    ...profileData,
+                    ...updateData,
+                    preferences: {
+                        ...profileData?.preferences,
+                        ...updateData.preferences,
+                        currency: updateData.preferences?.currency ?? profileData?.preferences?.currency ?? "",
+                        language: updateData.preferences?.language ?? profileData?.preferences?.language ?? "",
+                        timezone: updateData.preferences?.timezone ?? profileData?.preferences?.timezone ?? "",
+                        notifications: {
+                            ...profileData?.preferences?.notifications,
+                            ...updateData.preferences?.notifications
+                        }
+                    }
+                });
             }
 
             message.success('Profile updated successfully!');

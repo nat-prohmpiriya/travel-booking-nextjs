@@ -47,6 +47,9 @@ export interface CreateUserProfileData {
     phone?: string;
     photoURL?: string;
     preferences?: Partial<UserProfile['preferences']>;
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
+    role?: UserProfile['role']; // default to 'user' if not provided
 }
 
 export interface UpdateUserProfileData {
