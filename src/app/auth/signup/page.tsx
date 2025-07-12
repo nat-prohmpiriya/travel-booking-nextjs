@@ -7,35 +7,39 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthLayout } from '@/components/auth-layout';
 import { SocialLoginButtons } from '@/components/social-login-buttons';
+import { authService, SignUpData } from '@/services/auth';
 
 export default function SignUpPage() {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const handleEmailSignUp = async (values: any) => {
+    const handleEmailSignUp = async (values: SignUpData & { confirmPassword: string; agreeToTerms: boolean }) => {
         setLoading(true);
         try {
-            // TODO: Implement Firebase email/password signup
-            console.log('Sign up with:', values);
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
-
+            const { confirmPassword, agreeToTerms, ...signUpData } = values;
+            await authService.signUp(signUpData);
             message.success('Account created successfully!');
-            router.push('/auth/login');
-        } catch (error) {
-            message.error('Sign up failed. Please try again.');
+            router.push('/');
+        } catch (error: any) {
+            const errorMessage = error?.message || 'Sign up failed. Please try again.';
+            message.error(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
     const handleGoogleSignUp = async () => {
+        setLoading(true);
         try {
-            // TODO: Implement Firebase Google signup
-            console.log('Sign up with Google');
-            message.info('Google sign up coming soon!');
-        } catch (error) {
-            message.error('Google sign up failed');
+            await authService.signInWithGoogle();
+            message.success('Google sign up successful!');
+            router.push('/');
+        } catch (error: any) {
+            const errorMessage = error?.message || 'Google sign up failed';
+            message.error(errorMessage);
+        } finally {
+            setLoading(false);
         }
     };
 

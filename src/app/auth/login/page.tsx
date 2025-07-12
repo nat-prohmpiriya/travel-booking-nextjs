@@ -7,35 +7,38 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthLayout } from '@/components/auth-layout';
 import { SocialLoginButtons } from '@/components/social-login-buttons';
+import { authService, SignInData } from '@/services/auth';
 
 export default function SignInPage() {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const handleEmailLogin = async (values: any) => {
+    const handleEmailLogin = async (values: SignInData) => {
         setLoading(true);
         try {
-            // TODO: Implement Firebase email/password login
-            console.log('Login with:', values);
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
-
+            await authService.signIn(values);
             message.success('Login successful!');
             router.push('/');
-        } catch (error) {
-            message.error('Login failed. Please try again.');
+        } catch (error: any) {
+            const errorMessage = error?.message || 'Login failed. Please try again.';
+            message.error(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
     const handleGoogleLogin = async () => {
+        setLoading(true);
         try {
-            // TODO: Implement Firebase Google login
-            console.log('Login with Google');
-            message.info('Google login coming soon!');
-        } catch (error) {
-            message.error('Google login failed');
+            await authService.signInWithGoogle();
+            message.success('Google login successful!');
+            router.push('/');
+        } catch (error: any) {
+            const errorMessage = error?.message || 'Google login failed';
+            message.error(errorMessage);
+        } finally {
+            setLoading(false);
         }
     };
 
