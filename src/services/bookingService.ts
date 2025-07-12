@@ -38,6 +38,17 @@ export const bookingService = {
         const cancellationDeadline = new Date(data.checkIn);
         cancellationDeadline.setHours(cancellationDeadline.getHours() - 24);
 
+        // Ensure guestInfo fields are not undefined
+        const guestInfo = {
+            title: data.guestInfo.title ?? "Mr",
+            firstName: data.guestInfo.firstName ?? "",
+            lastName: data.guestInfo.lastName ?? "",
+            email: data.guestInfo.email ?? "",
+            phone: data.guestInfo.phone ?? "",
+            country: data.guestInfo.country ?? "",
+            specialRequests: data.guestInfo.specialRequests ?? ""
+        };
+
         const booking: Booking = {
             id: bookingRef.id,
             confirmationCode,
@@ -52,7 +63,7 @@ export const bookingService = {
             checkOut: Timestamp.fromDate(data.checkOut),
             guests: data.guests,
             rooms: data.rooms,
-            guestInfo: data.guestInfo,
+            guestInfo,
             pricing: data.pricing,
             paymentInfo: {
                 method: data.paymentInfo.method,
