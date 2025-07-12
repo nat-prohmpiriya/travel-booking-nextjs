@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, message } from 'antd';
 import {
     HomeOutlined,
     UserOutlined,
@@ -12,15 +12,16 @@ import {
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 const { Header } = Layout;
 
 export const Navbar: React.FC = () => {
     const router = useRouter();
+    const { user, userProfile, loading, logout } = useAuth();
 
-    // TODO: Replace with actual auth state
-    const isLoggedIn = false;
-    const user: { name?: string; avatar?: string } | null = null;
+    const isLoggedIn = !!user;
+    const displayName = userProfile?.name || user?.displayName || 'User';
 
     const menuItems = [
         {
@@ -57,11 +58,10 @@ export const Navbar: React.FC = () => {
     ];
 
     const handleLogin = () => {
-        // TODO: Implement login
         router.push('/auth/login');
     };
 
-    const handleUserMenuClick = ({ key }: { key: string }) => {
+    const handleUserMenuClick = async ({ key }: { key: string }) => {
         switch (key) {
             case 'profile':
                 router.push('/profile');
@@ -70,8 +70,13 @@ export const Navbar: React.FC = () => {
                 router.push('/settings');
                 break;
             case 'logout':
-                // TODO: Implement logout
-                console.log('Logout');
+                try {
+                    await logout();
+                    message.success('Logged out successfully');
+                    router.push('/');
+                } catch (error) {
+                    message.error('Failed to logout');
+                }
                 break;
         }
     };
@@ -105,18 +110,18 @@ export const Navbar: React.FC = () => {
                     >
                         <div className="flex items-center cursor-pointer">
                             <Avatar
-                                src={user?.avatar || undefined}
+                                src={user?.photoURL || undefined}
                                 icon={<UserOutlined />}
                                 className="mr-2"
                             />
-                            <span className="text-gray-700">{user?.name || 'User'}</span>
+                            <span className="text-gray-700">{displayName}</span>
                         </div>
                     </Dropdown>
                 ) : (
                     <div className="flex items-center gap-2">
                         <Button
                             type="text"
-                            onClick={() => router.push('/auth/register')}
+                            onClick={() => router.push('/auth/signup')}
                         >
                             Sign Up
                         </Button>

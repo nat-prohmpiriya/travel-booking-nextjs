@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
                             type="default"
                             size="large"
                             block
-                            onClick={() => router.push('/auth/login')}
+                            onClick={() => router.push('/auth/signin')}
                             icon={<ArrowLeftOutlined />}
                         >
                             Back to Sign In
@@ -125,7 +125,7 @@ export default function ForgotPasswordPage() {
                 {/* Back to Sign In */}
                 <div className="text-center">
                     <Link
-                        href="/auth/login"
+                        href="/auth/signin"
                         className="text-blue-600 hover:text-blue-500 inline-flex items-center gap-2"
                     >
                         <ArrowLeftOutlined />

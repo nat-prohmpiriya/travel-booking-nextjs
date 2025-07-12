@@ -22,7 +22,7 @@ export default function ResetPasswordPage() {
             await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
 
             message.success('Password reset successfully!');
-            router.push('/auth/login');
+            router.push('/auth/signin');
         } catch (error) {
             message.error('Failed to reset password. Please try again.');
         } finally {
@@ -62,7 +62,7 @@ export default function ResetPasswordPage() {
                             type="default"
                             size="large"
                             block
-                            onClick={() => router.push('/auth/login')}
+                            onClick={() => router.push('/auth/signin')}
                         >
                             Back to Sign In
                         </Button>
@@ -159,7 +159,7 @@ export default function ResetPasswordPage() {
                 {/* Back to Sign In */}
                 <div className="text-center">
                     <Link
-                        href="/auth/login"
+                        href="/auth/signin"
                         className="text-blue-600 hover:text-blue-500"
                     >
                         Back to Sign In
