@@ -1,31 +1,30 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import dynamic from 'next/dynamic';
 import { Card, Button, Alert, Spin, Space } from 'antd';
 import { EnvironmentOutlined, CompassOutlined } from '@ant-design/icons';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 
-// Fix for default markers
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+// Dynamic import for Leaflet components (client-side only)
+const MapContainer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.MapContainer),
+  { ssr: false }
+);
 
-// Custom hotel marker icon
-const hotelIcon = new L.Icon({
-  iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ff4757" width="32" height="32">
-      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-    </svg>
-  `),
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
-});
+const TileLayer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+
+const Marker = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Marker),
+  { ssr: false }
+);
+
+const Popup = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Popup),
+  { ssr: false }
+);
 
 interface GeoPoint {
   latitude: number;
@@ -52,8 +51,24 @@ export const HotelMap: React.FC<HotelMapProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [mapReady, setMapReady] = useState<boolean>(false);
+  const [leafletLoaded, setLeafletLoaded] = useState<boolean>(false);
 
   useEffect(() => {
+    // Check if we're on client side and load Leaflet
+    if (typeof window !== 'undefined') {
+      import('leaflet/dist/leaflet.css');
+      import('leaflet').then((L) => {
+        // Fix for default markers
+        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        });
+        setLeafletLoaded(true);
+      });
+    }
+
     // Simulate map loading
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -106,7 +121,7 @@ export const HotelMap: React.FC<HotelMapProps> = ({
     window.open(url, '_blank');
   };
 
-  if (isLoading) {
+  if (isLoading || !leafletLoaded) {
     return (
       <Card className={`w-full ${className}`}>
         <div className="flex flex-col justify-center items-center" style={{ height }}>
@@ -167,7 +182,7 @@ export const HotelMap: React.FC<HotelMapProps> = ({
           className="w-full rounded-lg overflow-hidden border border-gray-200"
           style={{ height }}
         >
-          {mapReady && (
+          {mapReady && leafletLoaded && (
             <MapContainer
               center={[latitude, longitude]}
               zoom={15}
@@ -179,7 +194,7 @@ export const HotelMap: React.FC<HotelMapProps> = ({
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <Marker position={[latitude, longitude]} icon={hotelIcon}>
+              <Marker position={[latitude, longitude]}>
                 <Popup>
                   <div className="text-center">
                     <h3 className="font-semibold text-lg mb-1">{hotel.name}</h3>
