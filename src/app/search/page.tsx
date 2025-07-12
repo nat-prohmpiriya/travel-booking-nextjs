@@ -160,7 +160,7 @@ export default function SearchResults() {
                                     max={10000}
                                     value={filters.priceRange}
                                     onChange={(value) => handleFilterChange('priceRange', value)}
-                                    tipFormatter={(value?: number) => value ? `฿${value}` : '฿0'}
+                                    tooltip={{ formatter: (value?: number) => value ? `฿${value}` : '฿0' }}
                                 />
                                 <div className="flex justify-between text-sm text-gray-500">
                                     <span>฿{filters.priceRange[0]}</span>
