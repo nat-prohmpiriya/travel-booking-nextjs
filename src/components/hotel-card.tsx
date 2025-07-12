@@ -79,7 +79,9 @@ export const HotelCard: React.FC<Props> = ({ hotel, onBookClick }) => {
                         </div>
                         <div className="text-right">
                             <Text className="text-2xl font-bold text-blue-600">
-                                ฿{hotel.pricePerNight.toLocaleString()}
+                                {hotel.rooms && hotel.rooms[0]?.price !== undefined
+                                    ? hotel.rooms[0].price.toLocaleString()
+                                    : 'N/A'}
                             </Text>
                             <Text className="text-gray-500 ml-1">/night</Text>
                         </div>
