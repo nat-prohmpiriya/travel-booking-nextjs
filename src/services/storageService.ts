@@ -7,19 +7,7 @@ import {
     getMetadata
 } from 'firebase/storage';
 import { firebaseStorage } from '@/utils/firebaseInit';
-
-export interface UploadProgress {
-    bytesTransferred: number;
-    totalBytes: number;
-    percentage: number;
-}
-
-export interface UploadResult {
-    url: string;
-    fullPath: string;
-    name: string;
-    size: number;
-}
+import { UploadProgress, UploadResult } from '@/types';
 
 export const storageService = {
     // Upload profile picture

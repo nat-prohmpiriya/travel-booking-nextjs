@@ -1,7 +1,7 @@
 // Mock hotel data for initial Firestore upload and local development
 // TypeScript interface from copilot-instructions.md
 import { Timestamp, GeoPoint } from 'firebase/firestore';
-import { Hotel, HotelRoom } from '../services/hotelService';
+import { Hotel, HotelRoom } from '../types';
 
 function randomAmenities() {
     const all = [

@@ -29,7 +29,7 @@
 - [x] สร้าง service สำหรับ user, hotel, booking
 - [x] สร้าง AuthContext และ Zustand store
 - [x] Error handling, loading state
-- [ ] mock data สำหรับโรงแรม, การ์ดโรงแรม
+- [x] mock data สำหรับโรงแรม, การ์ดโรงแรม
 - [ ] สร้างระบบค้นหาโรงแรม (Search)
 - [ ] สร้างระบบแสดงรายละเอียดโรงแรม (Hotel Details)
 - [ ] สร้างระบบจองที่พัก (Booking Flow)

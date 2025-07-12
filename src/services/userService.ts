@@ -13,63 +13,11 @@ import {
 } from 'firebase/firestore';
 import { firebaseDb } from '@/utils/firebaseInit';
 import { orderBy as firestoreOrderBy } from 'firebase/firestore';
-
-export interface UserProfile {
-    uid: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    phone?: string;
-    dateOfBirth?: string;
-    gender?: 'male' | 'female' | 'other' | 'prefer-not-to-say';
-    nationality?: string;
-    photoURL?: string;
-    address?: {
-        street?: string;
-        city?: string;
-        state?: string;
-        postalCode?: string;
-        country?: string;
-    };
-    preferences: {
-        currency: string;
-        language: string;
-        timezone: string;
-        notifications: {
-            email: boolean;
-            sms: boolean;
-            push: boolean;
-            marketing: boolean;
-        };
-    };
-    createdAt: Timestamp;
-    updatedAt: Timestamp;
-    name?: string; // Optional field for user name
-    isActive?: boolean; // User account status
-    role?: 'admin' | 'partner' | 'user'; // User role
-}
-
-export interface CreateUserProfileData {
-    uid: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    phone?: string;
-    photoURL?: string;
-    preferences?: Partial<UserProfile['preferences']>;
-}
-
-export interface UpdateUserProfileData {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    dateOfBirth?: string;
-    gender?: UserProfile['gender'];
-    nationality?: string;
-    photoURL?: string;
-    address?: Partial<UserProfile['address']>;
-    preferences?: Partial<UserProfile['preferences']>;
-}
+import { 
+    UserProfile, 
+    CreateUserProfileData, 
+    UpdateUserProfileData 
+} from '@/types';
 
 export const userService = {
     // Create user profile

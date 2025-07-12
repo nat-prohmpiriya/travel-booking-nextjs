@@ -8,18 +8,8 @@ import {
     updateProfile
 } from 'firebase/auth';
 import { firebaseAuth } from '@/utils/firebaseInit';
-import { userService, CreateUserProfileData } from './userService';
-
-export interface SignUpData {
-    name: string;
-    email: string;
-    password: string;
-}
-
-export interface SignInData {
-    email: string;
-    password: string;
-}
+import { userService } from './userService';
+import { SignUpData, SignInData, CreateUserProfileData } from '@/types';
 
 
 const googleProvider = new GoogleAuthProvider();
