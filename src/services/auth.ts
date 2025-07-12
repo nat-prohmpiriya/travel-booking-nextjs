@@ -7,8 +7,8 @@ import {
     User,
     updateProfile
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { firebaseAuth, firebaseDb } from '@/utils/firebaseInit';
+import { firebaseAuth } from '@/utils/firebaseInit';
+import { userService, CreateUserProfileData } from './userService';
 
 export interface SignUpData {
     name: string;
@@ -21,12 +21,6 @@ export interface SignInData {
     password: string;
 }
 
-export interface UserProfile {
-    uid: string;
-    email: string;
-    name: string;
-    createdAt: Date;
-}
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -44,13 +38,16 @@ export const authService = {
             displayName: data.name
         });
 
-        // Save user profile to Firestore
-        await setDoc(doc(firebaseDb, 'users', user.uid), {
+        // Create user profile in Firestore
+        const userProfileData: CreateUserProfileData = {
             uid: user.uid,
             email: data.email,
-            name: data.name,
-            createdAt: new Date()
-        });
+            firstName: data.name.split(' ')[0] || '',
+            lastName: data.name.split(' ').slice(1).join(' ') || '',
+            photoURL: user.photoURL || undefined
+        };
+
+        await userService.createUserProfile(userProfileData);
 
         return user;
     },
@@ -70,14 +67,17 @@ export const authService = {
         const { user } = await signInWithPopup(firebaseAuth, googleProvider);
         
         // Check if user exists in Firestore, if not create profile
-        const userDoc = await getDoc(doc(firebaseDb, 'users', user.uid));
-        if (!userDoc.exists()) {
-            await setDoc(doc(firebaseDb, 'users', user.uid), {
+        const existingProfile = await userService.getUserProfile(user.uid);
+        if (!existingProfile) {
+            const userProfileData: CreateUserProfileData = {
                 uid: user.uid,
-                email: user.email,
-                name: user.displayName || 'Google User',
-                createdAt: new Date()
-            });
+                email: user.email || '',
+                firstName: user.displayName?.split(' ')[0] || 'Google',
+                lastName: user.displayName?.split(' ').slice(1).join(' ') || 'User',
+                photoURL: user.photoURL || undefined
+            };
+
+            await userService.createUserProfile(userProfileData);
         }
         
         return user;
@@ -94,11 +94,7 @@ export const authService = {
     },
 
     // Get user profile from Firestore
-    async getUserProfile(uid: string): Promise<UserProfile | null> {
-        const userDoc = await getDoc(doc(firebaseDb, 'users', uid));
-        if (userDoc.exists()) {
-            return userDoc.data() as UserProfile;
-        }
-        return null;
+    async getUserProfile(uid: string) {
+        return await userService.getUserProfile(uid);
     }
 };

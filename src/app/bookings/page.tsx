@@ -39,6 +39,7 @@ import {
 } from '@ant-design/icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { bookingService, BookingFilters } from '@/services/bookingService';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 
@@ -145,12 +146,45 @@ export default function BookingsPage() {
             return;
         }
 
-        // Simulate loading bookings
-        setTimeout(() => {
-            setBookings(mockBookings);
-            setFilteredBookings(mockBookings);
-            setLoading(false);
-        }, 1000);
+        const loadBookings = async () => {
+            try {
+                const userBookings = await bookingService.getUserBookings(user.uid);
+                
+                // Convert Firebase bookings to our Booking interface
+                const convertedBookings: Booking[] = userBookings.map(booking => ({
+                    id: booking.id,
+                    confirmationCode: booking.confirmationCode,
+                    hotelName: booking.hotelName,
+                    hotelImage: booking.hotelImage,
+                    hotelLocation: booking.hotelLocation,
+                    roomName: booking.roomName,
+                    checkIn: dayjs(booking.checkIn.toDate()).format('YYYY-MM-DD'),
+                    checkOut: dayjs(booking.checkOut.toDate()).format('YYYY-MM-DD'),
+                    guests: booking.guests,
+                    rooms: booking.rooms,
+                    totalPrice: booking.pricing.total,
+                    bookingDate: dayjs(booking.createdAt.toDate()).format('YYYY-MM-DD HH:mm:ss'),
+                    status: booking.status === 'confirmed' ? 'upcoming' : 
+                            booking.status === 'checked-out' ? 'completed' : 
+                            booking.status as 'upcoming' | 'completed' | 'cancelled',
+                    canCancel: booking.policies.canCancel && booking.status === 'confirmed',
+                    canModify: booking.policies.canModify && booking.status === 'confirmed',
+                    hasReview: false // TODO: Check if user has submitted review
+                }));
+
+                setBookings(convertedBookings);
+                setFilteredBookings(convertedBookings);
+            } catch (error) {
+                console.error('Error loading bookings:', error);
+                // Fallback to mock data
+                setBookings(mockBookings);
+                setFilteredBookings(mockBookings);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadBookings();
     }, [user, router]);
 
     useEffect(() => {
@@ -195,8 +229,7 @@ export default function BookingsPage() {
         if (!selectedBooking) return;
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await bookingService.cancelBooking(selectedBooking.id);
             
             setBookings(prev => 
                 prev.map(booking => 
@@ -208,8 +241,8 @@ export default function BookingsPage() {
             
             message.success('Booking cancelled successfully');
             setCancelModalVisible(false);
-        } catch (error) {
-            message.error('Failed to cancel booking');
+        } catch (error: any) {
+            message.error(error.message || 'Failed to cancel booking');
         }
     };
 

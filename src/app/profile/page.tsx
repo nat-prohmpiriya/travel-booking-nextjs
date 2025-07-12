@@ -36,39 +36,13 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth';
+import { userService, UserProfile, UpdateUserProfileData } from '@/services/userService';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-interface UserProfileData {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    dateOfBirth?: string;
-    gender?: string;
-    nationality?: string;
-    address?: {
-        street: string;
-        city: string;
-        state: string;
-        postalCode: string;
-        country: string;
-    };
-    preferences: {
-        currency: string;
-        language: string;
-        timezone: string;
-        notifications: {
-            email: boolean;
-            sms: boolean;
-            push: boolean;
-            marketing: boolean;
-        };
-    };
-}
 
 export default function ProfilePage() {
     const { user, userProfile, logout } = useAuth();
@@ -78,23 +52,7 @@ export default function ProfilePage() {
     const [passwordForm] = Form.useForm();
     const [loading, setLoading] = useState<boolean>(false);
     const [passwordModalVisible, setPasswordModalVisible] = useState<boolean>(false);
-    const [profileData, setProfileData] = useState<UserProfileData>({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        preferences: {
-            currency: 'THB',
-            language: 'en',
-            timezone: 'Asia/Bangkok',
-            notifications: {
-                email: true,
-                sms: false,
-                push: true,
-                marketing: false
-            }
-        }
-    });
+    const [profileData, setProfileData] = useState<UserProfile | null>(null);
 
     useEffect(() => {
         if (!user) {
@@ -102,41 +60,48 @@ export default function ProfilePage() {
             return;
         }
 
-        // Initialize form with user data
-        const userData = {
-            firstName: user.displayName?.split(' ')[0] || '',
-            lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
-            email: user.email || '',
-            phone: userProfile?.phone || '',
-            dateOfBirth: userProfile?.dateOfBirth || '',
-            gender: userProfile?.gender || '',
-            nationality: userProfile?.nationality || '',
-            preferences: {
-                currency: 'THB',
-                language: 'en',
-                timezone: 'Asia/Bangkok',
-                notifications: {
-                    email: true,
-                    sms: false,
-                    push: true,
-                    marketing: false
-                }
-            }
-        };
-
-        setProfileData(userData);
-        form.setFieldsValue(userData);
+        if (userProfile) {
+            setProfileData(userProfile);
+            form.setFieldsValue({
+                firstName: userProfile.firstName,
+                lastName: userProfile.lastName,
+                email: userProfile.email,
+                phone: userProfile.phone,
+                dateOfBirth: userProfile.dateOfBirth,
+                gender: userProfile.gender,
+                nationality: userProfile.nationality,
+                address: userProfile.address,
+                preferences: userProfile.preferences
+            });
+        }
     }, [user, userProfile, form, router]);
 
     const handleProfileUpdate = async (values: any) => {
+        if (!user) return;
+        
         setLoading(true);
         try {
-            // Simulate API call to update profile
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const updateData: UpdateUserProfileData = {
+                firstName: values.firstName,
+                lastName: values.lastName,
+                phone: values.phone,
+                dateOfBirth: values.dateOfBirth,
+                gender: values.gender,
+                nationality: values.nationality,
+                address: values.address,
+                preferences: values.preferences
+            };
+
+            await userService.updateUserProfile(user.uid, updateData);
             
-            setProfileData({ ...profileData, ...values });
+            // Update local state
+            if (profileData) {
+                setProfileData({ ...profileData, ...updateData });
+            }
+            
             message.success('Profile updated successfully!');
         } catch (error) {
+            console.error('Error updating profile:', error);
             message.error('Failed to update profile');
         } finally {
             setLoading(false);
@@ -426,7 +391,7 @@ export default function ProfilePage() {
                                         children: (
                                             <Form
                                                 layout="vertical"
-                                                initialValues={profileData.preferences}
+                                                initialValues={profileData?.preferences}
                                                 onFinish={(values) => handleProfileUpdate({ preferences: values })}
                                             >
                                                 <Row gutter={24}>

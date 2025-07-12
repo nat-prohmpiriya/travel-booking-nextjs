@@ -40,6 +40,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useSearchStore } from '@/stores/search-store';
 import { SearchForm } from '@/components/search-form';
 import { SearchParams as SearchParamsType } from '@/types';
+import { hotelService } from '@/services/hotelService';
 import Link from 'next/link';
 
 const { Title, Text, Paragraph } = Typography;
@@ -133,29 +134,60 @@ export default function HotelDetail() {
     ];
 
     useEffect(() => {
-        const foundHotel = searchResults.find(h => h.id === hotelId);
-        if (foundHotel) {
-            setHotel(foundHotel);
-        } else {
-            // Mock hotel data if not found in search results
-            setHotel({
-                id: hotelId,
-                name: 'Grand Palace Hotel',
-                location: 'Bangkok City Center',
-                rating: 4.5,
-                reviewCount: 1247,
-                price: 2500,
-                description: 'Experience luxury and comfort at Grand Palace Hotel, located in the heart of Bangkok. Our hotel offers world-class amenities, exceptional service, and convenient access to major attractions.',
-                imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
-                amenities: ['Free WiFi', 'Swimming Pool', 'Fitness Center', 'Spa', 'Restaurant', 'Bar', 'Room Service', 'Concierge'],
-                images: [
-                    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
-                    'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&h=600&fit=crop',
-                    'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&h=600&fit=crop',
-                    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop'
-                ]
-            });
-        }
+        const loadHotelData = async () => {
+            try {
+                // First try to find in search results
+                const foundHotel = searchResults.find(h => h.id === hotelId);
+                if (foundHotel) {
+                    setHotel(foundHotel);
+                    return;
+                }
+
+                // If not found, load from Firebase
+                const firebaseHotel = await hotelService.getHotel(hotelId);
+                if (firebaseHotel) {
+                    // Convert Firebase Hotel to our Hotel type
+                    const hotelData = {
+                        id: firebaseHotel.id,
+                        name: firebaseHotel.name,
+                        location: firebaseHotel.location,
+                        rating: firebaseHotel.rating,
+                        reviewCount: firebaseHotel.reviewCount,
+                        price: firebaseHotel.priceRange.min,
+                        pricePerNight: firebaseHotel.priceRange.min,
+                        description: firebaseHotel.description,
+                        imageUrl: firebaseHotel.images[0] || '',
+                        amenities: firebaseHotel.amenities,
+                        images: firebaseHotel.images
+                    };
+                    setHotel(hotelData);
+                } else {
+                    // Fallback to mock data
+                    setHotel({
+                        id: hotelId,
+                        name: 'Grand Palace Hotel',
+                        location: 'Bangkok City Center',
+                        rating: 4.5,
+                        reviewCount: 1247,
+                        price: 2500,
+                        pricePerNight: 2500,
+                        description: 'Experience luxury and comfort at Grand Palace Hotel, located in the heart of Bangkok. Our hotel offers world-class amenities, exceptional service, and convenient access to major attractions.',
+                        imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
+                        amenities: ['Free WiFi', 'Swimming Pool', 'Fitness Center', 'Spa', 'Restaurant', 'Bar', 'Room Service', 'Concierge'],
+                        images: [
+                            'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
+                            'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&h=600&fit=crop',
+                            'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&h=600&fit=crop',
+                            'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop'
+                        ]
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading hotel data:', error);
+            }
+        };
+
+        loadHotelData();
     }, [hotelId, searchResults]);
 
     const handleBookRoom = (room: Room) => {

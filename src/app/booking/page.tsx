@@ -31,6 +31,7 @@ import {
 } from '@ant-design/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { bookingService, CreateBookingData } from '@/services/bookingService';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 
@@ -121,27 +122,70 @@ export default function BookingPage() {
     };
 
     const handlePaymentSubmit = async (values: PaymentInfo) => {
-        if (!agreeTnC) {
+        if (!agreeTnC || !user || !bookingData) {
             message.error('Please agree to terms and conditions');
             return;
         }
 
         setLoading(true);
         try {
-            // Simulate payment processing
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Get guest info from the first form
+            const guestFormValues = guestForm.getFieldsValue();
             
-            const bookingId = `BK${Date.now()}`;
-            
-            // Here you would normally:
-            // 1. Process payment
-            // 2. Create booking in database
-            // 3. Send confirmation emails
+            const nights = dayjs(bookingData.checkOut).diff(dayjs(bookingData.checkIn), 'day');
+            const subtotal = bookingData.room.price * bookingData.rooms * nights;
+            const taxes = subtotal * 0.1;
+            const serviceFee = 100;
+            const total = subtotal + taxes + serviceFee;
+
+            // Create booking data
+            const createBookingData: CreateBookingData = {
+                userId: user.uid,
+                hotelId: bookingData.hotelId,
+                hotelName: bookingData.hotelName,
+                hotelLocation: bookingData.hotelName, // TODO: Get actual location
+                hotelImage: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop',
+                roomId: bookingData.room.id,
+                roomName: bookingData.room.name,
+                checkIn: new Date(bookingData.checkIn),
+                checkOut: new Date(bookingData.checkOut),
+                guests: bookingData.guests,
+                rooms: bookingData.rooms,
+                guestInfo: {
+                    title: guestFormValues.title,
+                    firstName: guestFormValues.firstName,
+                    lastName: guestFormValues.lastName,
+                    email: guestFormValues.email,
+                    phone: guestFormValues.phone,
+                    country: guestFormValues.country,
+                    specialRequests: guestFormValues.specialRequests
+                },
+                pricing: {
+                    roomRate: subtotal,
+                    taxes: taxes,
+                    serviceFee: serviceFee,
+                    total: total,
+                    currency: 'THB'
+                },
+                paymentInfo: {
+                    method: 'card',
+                    cardDetails: {
+                        cardNumber: values.cardNumber,
+                        expiryDate: values.expiryDate,
+                        cvv: values.cvv,
+                        cardHolderName: values.cardHolderName
+                    }
+                }
+            };
+
+            // Create booking in Firebase
+            const booking = await bookingService.createBooking(createBookingData);
             
             message.success('Booking confirmed successfully!');
-            router.push(`/booking/confirmation/${bookingId}`);
+            router.push(`/booking/confirmation/${booking.id}`);
         } catch (error) {
-            message.error('Payment failed. Please try again.');
+            console.error('Booking error:', error);
+            message.error('Booking failed. Please try again.');
         } finally {
             setLoading(false);
         }

@@ -29,6 +29,7 @@ import {
 } from '@ant-design/icons';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { bookingService } from '@/services/bookingService';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 
@@ -67,34 +68,71 @@ export default function BookingConfirmation() {
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        // Simulate fetching booking details
-        setTimeout(() => {
-            const mockBooking: BookingConfirmation = {
-                id: bookingId,
-                hotelName: 'Grand Palace Hotel',
-                hotelAddress: '123 Sukhumvit Road, Bangkok 10110, Thailand',
-                hotelPhone: '+66 2 123 4567',
-                hotelEmail: 'info@grandpalace.com',
-                roomName: 'Deluxe Room',
-                checkIn: dayjs().add(7, 'day').format('YYYY-MM-DD'),
-                checkOut: dayjs().add(10, 'day').format('YYYY-MM-DD'),
-                guests: 2,
-                rooms: 1,
-                totalPrice: 8600,
-                bookingDate: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-                status: 'confirmed',
-                guestInfo: {
-                    name: user?.displayName || 'John Doe',
-                    email: user?.email || 'john@example.com',
-                    phone: '+66 81 234 5678'
-                },
-                confirmationCode: `${bookingId}-CONF`,
-                specialRequests: 'Early check-in requested'
-            };
-            
-            setBooking(mockBooking);
-            setLoading(false);
-        }, 1000);
+        const loadBookingData = async () => {
+            try {
+                const firebaseBooking = await bookingService.getBooking(bookingId);
+                
+                if (firebaseBooking) {
+                    // Convert Firebase booking to our interface
+                    const bookingConfirmation: BookingConfirmation = {
+                        id: firebaseBooking.id,
+                        hotelName: firebaseBooking.hotelName,
+                        hotelAddress: firebaseBooking.hotelLocation, // TODO: Get full address
+                        hotelPhone: '+66 2 123 4567', // TODO: Get from hotel data
+                        hotelEmail: 'info@hotel.com', // TODO: Get from hotel data
+                        roomName: firebaseBooking.roomName,
+                        checkIn: dayjs(firebaseBooking.checkIn.toDate()).format('YYYY-MM-DD'),
+                        checkOut: dayjs(firebaseBooking.checkOut.toDate()).format('YYYY-MM-DD'),
+                        guests: firebaseBooking.guests,
+                        rooms: firebaseBooking.rooms,
+                        totalPrice: firebaseBooking.pricing.total,
+                        bookingDate: dayjs(firebaseBooking.createdAt.toDate()).format('YYYY-MM-DD HH:mm:ss'),
+                        status: firebaseBooking.status,
+                        guestInfo: {
+                            name: `${firebaseBooking.guestInfo.firstName} ${firebaseBooking.guestInfo.lastName}`,
+                            email: firebaseBooking.guestInfo.email,
+                            phone: firebaseBooking.guestInfo.phone
+                        },
+                        confirmationCode: firebaseBooking.confirmationCode,
+                        specialRequests: firebaseBooking.guestInfo.specialRequests
+                    };
+                    
+                    setBooking(bookingConfirmation);
+                } else {
+                    // Fallback to mock data
+                    const mockBooking: BookingConfirmation = {
+                        id: bookingId,
+                        hotelName: 'Grand Palace Hotel',
+                        hotelAddress: '123 Sukhumvit Road, Bangkok 10110, Thailand',
+                        hotelPhone: '+66 2 123 4567',
+                        hotelEmail: 'info@grandpalace.com',
+                        roomName: 'Deluxe Room',
+                        checkIn: dayjs().add(7, 'day').format('YYYY-MM-DD'),
+                        checkOut: dayjs().add(10, 'day').format('YYYY-MM-DD'),
+                        guests: 2,
+                        rooms: 1,
+                        totalPrice: 8600,
+                        bookingDate: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+                        status: 'confirmed',
+                        guestInfo: {
+                            name: user?.displayName || 'John Doe',
+                            email: user?.email || 'john@example.com',
+                            phone: '+66 81 234 5678'
+                        },
+                        confirmationCode: `${bookingId}-CONF`,
+                        specialRequests: 'Early check-in requested'
+                    };
+                    
+                    setBooking(mockBooking);
+                }
+            } catch (error) {
+                console.error('Error loading booking:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadBookingData();
     }, [bookingId, user]);
 
     const handleDownloadConfirmation = () => {
