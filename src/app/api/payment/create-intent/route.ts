@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-06-30.basil',
 });
 
 interface CreatePaymentIntentRequest {
@@ -21,7 +21,7 @@ interface CreatePaymentIntentRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: CreatePaymentIntentRequest = await request.json();
-    
+
     const {
       amount,
       currency = 'thb',
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Error creating payment intent:', error);
-    
+
     // Handle specific Stripe errors
     if (error.type === 'StripeCardError') {
       return NextResponse.json(
@@ -87,35 +87,35 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     if (error.type === 'StripeRateLimitError') {
       return NextResponse.json(
         { error: 'Too many requests made to the API too quickly.' },
         { status: 429 }
       );
     }
-    
+
     if (error.type === 'StripeInvalidRequestError') {
       return NextResponse.json(
         { error: 'Invalid parameters were supplied to Stripe\'s API.' },
         { status: 400 }
       );
     }
-    
+
     if (error.type === 'StripeAPIError') {
       return NextResponse.json(
         { error: 'An error occurred internally with Stripe\'s API.' },
         { status: 500 }
       );
     }
-    
+
     if (error.type === 'StripeConnectionError') {
       return NextResponse.json(
         { error: 'Some kind of error occurred during the HTTPS communication.' },
         { status: 500 }
       );
     }
-    
+
     if (error.type === 'StripeAuthenticationError') {
       return NextResponse.json(
         { error: 'You probably used an incorrect API key.' },

@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { firebaseStorage, firestore } from '@/utils/firebaseInit';
-import { doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import serviceAccount from '../../../../../firebaseAdminKey.json';
+import admin from 'firebase-admin';
+
+const firestore = admin.firestore();
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+  databaseURL: "https://travel-booking-867f5-default-rtdb.asia-southeast1.firebasedatabase.app"
+});
+
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-06-30.basil',
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-
 async function updateBookingStatus(
   bookingId: string,
   status: 'confirmed' | 'failed',
@@ -16,11 +24,11 @@ async function updateBookingStatus(
   paymentMethod?: string
 ): Promise<void> {
   try {
-    const bookingRef = doc(firestore, 'bookings', bookingId);
+    const bookingRef = admin.firestore().collection('bookings').doc(bookingId);
 
     // Check if booking exists
-    const bookingSnap = await getDoc(bookingRef);
-    if (!bookingSnap.exists()) {
+    const bookingSnap = await bookingRef.get();
+    if (!bookingSnap.exists) {
       console.error(`Booking ${bookingId} not found`);
       return;
     }
@@ -28,18 +36,18 @@ async function updateBookingStatus(
     const updateData: any = {
       paymentStatus: status,
       paymentIntentId,
-      updatedAt: serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     };
 
     if (status === 'confirmed') {
       updateData.status = 'confirmed';
       updateData.paymentMethod = paymentMethod;
-      updateData.confirmedAt = serverTimestamp();
+      updateData.confirmedAt = admin.firestore.FieldValue.serverTimestamp();
     } else {
       updateData.status = 'payment_failed';
     }
 
-    await updateDoc(bookingRef, updateData);
+    await bookingRef.update(updateData);
     console.log(`Booking ${bookingId} updated with status: ${status}`);
   } catch (error) {
     console.error(`Error updating booking ${bookingId}:`, error);
