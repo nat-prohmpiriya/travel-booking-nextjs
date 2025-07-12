@@ -58,7 +58,7 @@ export const Navbar: React.FC = () => {
     ];
 
     const handleLogin = () => {
-        router.push('/auth/login');
+        router.push('/auth/signin');
     };
 
     const handleUserMenuClick = async ({ key }: { key: string }) => {

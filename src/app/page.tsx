@@ -31,20 +31,25 @@ export default function Home() {
   const handleSearch = async (params: Partial<SearchParams>) => {
     setSearchParams(params);
     await searchHotels();
-    message.success('Search completed! Redirecting to results...');
-    // TODO: Navigate to search results page
-    // router.push('/search');
+    
+    // Build search URL with parameters
+    const searchUrl = new URLSearchParams();
+    if (params.location) searchUrl.set('location', params.location);
+    if (params.checkIn) searchUrl.set('checkIn', params.checkIn.toISOString());
+    if (params.checkOut) searchUrl.set('checkOut', params.checkOut.toISOString());
+    if (params.guests) searchUrl.set('guests', params.guests.toString());
+    if (params.rooms) searchUrl.set('rooms', params.rooms.toString());
+    
+    router.push(`/search?${searchUrl.toString()}`);
   };
 
   const handleDestinationClick = (destination: any) => {
     setSearchParams({ location: destination.name });
-    // TODO: Navigate to search with destination preset
-    message.info(`Searching hotels in ${destination.name}...`);
+    router.push(`/search?location=${encodeURIComponent(destination.name)}`);
   };
 
   const handleBookHotel = (hotel: any) => {
-    // TODO: Navigate to booking page
-    message.info(`Booking ${hotel.name}...`);
+    router.push(`/hotel/${hotel.id}`);
   };
 
   return (
