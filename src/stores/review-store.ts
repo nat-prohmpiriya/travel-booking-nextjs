@@ -158,10 +158,21 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
             get().loadReviewStats(data.hotelId);
 
             return review;
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating review:', error);
+            
+            let errorMessage = 'ไม่สามารถส่งรีวิวได้ กรุณาลองใหม่อีกครั้ง';
+            
+            if (error.message?.includes('does not exist')) {
+                errorMessage = 'ไม่พบข้อมูลโรงแรมนี้ กรุณาลองใหม่อีกครั้ง';
+            } else if (error.code === 'permission-denied') {
+                errorMessage = 'คุณไม่มีสิทธิ์ในการเขียนรีวิว';
+            } else if (error.code === 'unauthenticated') {
+                errorMessage = 'กรุณาเข้าสู่ระบบเพื่อเขียนรีวิว';
+            }
+            
             set({
-                error: 'ไม่สามารถส่งรีวิวได้ กรุณาลองใหม่อีกครั้ง',
+                error: errorMessage,
                 isSubmitting: false
             });
             throw error;

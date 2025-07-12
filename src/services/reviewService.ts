@@ -34,6 +34,45 @@ export const reviewService = {
     // Create review
     async createReview(data: CreateReviewData, userProfile: { uid: string; firstName: string; lastName: string; photoURL?: string }): Promise<Review> {
         try {
+            const hotelRef = doc(firebaseDb, 'hotels', data.hotelId);
+            const hotelDoc = await getDoc(hotelRef);
+            
+            // If hotel doesn't exist, create a minimal hotel record for demo/mock data
+            if (!hotelDoc.exists()) {
+                console.warn(`Hotel ${data.hotelId} doesn't exist, creating minimal record for reviews`);
+                
+                // Create minimal hotel record
+                const minimalHotel = {
+                    id: data.hotelId,
+                    name: 'Demo Hotel',
+                    description: 'Demo hotel for testing',
+                    location: 'Demo Location',
+                    address: 'Demo Address',
+                    city: 'Demo City',
+                    country: 'Thailand',
+                    rating: 0,
+                    reviewCount: 0,
+                    priceRange: { min: 1000, max: 5000 },
+                    amenities: [],
+                    images: [],
+                    rooms: [],
+                    contact: { phone: '', email: '' },
+                    policies: {
+                        checkIn: '14:00',
+                        checkOut: '12:00',
+                        cancellation: 'Free cancellation',
+                        pets: false,
+                        smoking: false
+                    },
+                    isActive: true,
+                    isFeatured: false,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                };
+                
+                await setDoc(hotelRef, minimalHotel);
+            }
+
             const reviewRef = doc(collection(firebaseDb, 'reviews'));
             const batch = writeBatch(firebaseDb);
 
@@ -65,7 +104,6 @@ export const reviewService = {
             batch.set(reviewRef, review);
 
             // Update hotel stats
-            const hotelRef = doc(firebaseDb, 'hotels', data.hotelId);
             batch.update(hotelRef, {
                 reviewCount: increment(1),
                 updatedAt: serverTimestamp()
@@ -370,9 +408,18 @@ export const reviewService = {
     // Update hotel rating and review stats
     async updateHotelRating(hotelId: string): Promise<void> {
         try {
+            // Check if hotel exists first
+            const hotelRef = doc(firebaseDb, 'hotels', hotelId);
+            const hotelDoc = await getDoc(hotelRef);
+            
+            if (!hotelDoc.exists()) {
+                console.warn(`Hotel with ID ${hotelId} does not exist, skipping rating update`);
+                return;
+            }
+
             const stats = await this.getReviewStats(hotelId);
 
-            await updateDoc(doc(firebaseDb, 'hotels', hotelId), {
+            await updateDoc(hotelRef, {
                 rating: stats.averageRating,
                 reviewCount: stats.totalReviews,
                 reviewStats: stats,

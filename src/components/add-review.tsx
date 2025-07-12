@@ -81,6 +81,8 @@ export const AddReview: React.FC<AddReviewProps> = ({
     const [prosInput, setProsInput] = useState<string>('');
     const [consInput, setConsInput] = useState<string>('');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [prosArray, setProsArray] = useState<string[]>([]);
+    const [consArray, setConsArray] = useState<string[]>([]);
 
     const handleSubmit = async (values: ReviewFormData): Promise<void> => {
         if (!user) {
@@ -95,8 +97,8 @@ export const AddReview: React.FC<AddReviewProps> = ({
                 rating: values.rating,
                 title: values.title,
                 comment: values.comment,
-                pros: values.pros || [],
-                cons: values.cons || [],
+                pros: prosArray,
+                cons: consArray,
                 roomType: values.roomType,
                 stayDate: values.stayDate.toDate(),
                 tags: selectedTags,
@@ -120,6 +122,8 @@ export const AddReview: React.FC<AddReviewProps> = ({
             setProsInput('');
             setConsInput('');
             setSelectedTags([]);
+            setProsArray([]);
+            setConsArray([]);
             onClose();
             onSuccess?.();
         } catch (error) {
@@ -130,28 +134,24 @@ export const AddReview: React.FC<AddReviewProps> = ({
 
     const addPros = (): void => {
         if (prosInput.trim()) {
-            const currentPros = form.getFieldValue('pros') || [];
-            form.setFieldValue('pros', [...currentPros, prosInput.trim()]);
+            setProsArray(prev => [...prev, prosInput.trim()]);
             setProsInput('');
         }
     };
 
     const addCons = (): void => {
         if (consInput.trim()) {
-            const currentCons = form.getFieldValue('cons') || [];
-            form.setFieldValue('cons', [...currentCons, consInput.trim()]);
+            setConsArray(prev => [...prev, consInput.trim()]);
             setConsInput('');
         }
     };
 
     const removePros = (index: number): void => {
-        const currentPros = form.getFieldValue('pros') || [];
-        form.setFieldValue('pros', currentPros.filter((_: string, i: number) => i !== index));
+        setProsArray(prev => prev.filter((_, i) => i !== index));
     };
 
     const removeCons = (index: number): void => {
-        const currentCons = form.getFieldValue('cons') || [];
-        form.setFieldValue('cons', currentCons.filter((_: string, i: number) => i !== index));
+        setConsArray(prev => prev.filter((_, i) => i !== index));
     };
 
     const toggleTag = (tag: string): void => {
@@ -296,21 +296,19 @@ export const AddReview: React.FC<AddReviewProps> = ({
                             เพิ่ม
                         </Button>
                     </div>
-                    <Form.Item name="pros" noStyle>
-                        <div className="min-h-[40px] border border-gray-200 rounded p-2">
-                            {form.getFieldValue('pros')?.map((pro: string, index: number) => (
-                                <Tag
-                                    key={index}
-                                    closable
-                                    onClose={() => removePros(index)}
-                                    color="green"
-                                    className="mb-1"
-                                >
-                                    👍 {pro}
-                                </Tag>
-                            )) || <Text type="secondary">ยังไม่มีจุดเด่น</Text>}
-                        </div>
-                    </Form.Item>
+                    <div className="min-h-[40px] border border-gray-200 rounded p-2">
+                        {prosArray.length > 0 ? prosArray.map((pro: string, index: number) => (
+                            <Tag
+                                key={index}
+                                closable
+                                onClose={() => removePros(index)}
+                                color="green"
+                                className="mb-1"
+                            >
+                                👍 {pro}
+                            </Tag>
+                        )) : <Text type="secondary">ยังไม่มีจุดเด่น</Text>}
+                    </div>
                 </div>
 
                 {/* Cons */}
@@ -327,21 +325,19 @@ export const AddReview: React.FC<AddReviewProps> = ({
                             เพิ่ม
                         </Button>
                     </div>
-                    <Form.Item name="cons" noStyle>
-                        <div className="min-h-[40px] border border-gray-200 rounded p-2">
-                            {form.getFieldValue('cons')?.map((con: string, index: number) => (
-                                <Tag
-                                    key={index}
-                                    closable
-                                    onClose={() => removeCons(index)}
-                                    color="red"
-                                    className="mb-1"
-                                >
-                                    👎 {con}
-                                </Tag>
-                            )) || <Text type="secondary">ยังไม่มีจุดด้อย</Text>}
-                        </div>
-                    </Form.Item>
+                    <div className="min-h-[40px] border border-gray-200 rounded p-2">
+                        {consArray.length > 0 ? consArray.map((con: string, index: number) => (
+                            <Tag
+                                key={index}
+                                closable
+                                onClose={() => removeCons(index)}
+                                color="red"
+                                className="mb-1"
+                            >
+                                👎 {con}
+                            </Tag>
+                        )) : <Text type="secondary">ยังไม่มีจุดด้อย</Text>}
+                    </div>
                 </div>
 
                 {/* Tags */}
