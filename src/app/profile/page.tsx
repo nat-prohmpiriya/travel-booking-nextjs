@@ -1,18 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { 
-    Card, 
-    Typography, 
-    Button, 
-    Form, 
-    Input, 
-    Select, 
-    Upload, 
-    Avatar, 
-    Row, 
-    Col, 
-    Divider, 
+import {
+    Card,
+    Typography,
+    Button,
+    Form,
+    Input,
+    Select,
+    Upload,
+    Avatar,
+    Row,
+    Col,
+    Divider,
     Switch,
     message,
     Modal,
@@ -20,7 +20,7 @@ import {
     Breadcrumb,
     Tabs
 } from 'antd';
-import { 
+import {
     UserOutlined,
     EditOutlined,
     CameraOutlined,
@@ -48,7 +48,7 @@ const { Option } = Select;
 export default function ProfilePage() {
     const { user, userProfile, logout } = useAuth();
     const router = useRouter();
-    
+
     const [form] = Form.useForm();
     const [passwordForm] = Form.useForm();
     const [loading, setLoading] = useState<boolean>(false);
@@ -59,7 +59,7 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (!user) {
-            router.push('/auth/login');
+            router.push('/auth/signin');
             return;
         }
 
@@ -81,7 +81,7 @@ export default function ProfilePage() {
 
     const handleProfileUpdate = async (values: any) => {
         if (!user) return;
-        
+
         setLoading(true);
         try {
             const updateData: UpdateUserProfileData = {
@@ -96,12 +96,12 @@ export default function ProfilePage() {
             };
 
             await userService.updateUserProfile(user.uid, updateData);
-            
+
             // Update local state
             if (profileData) {
                 setProfileData({ ...profileData, ...updateData });
             }
-            
+
             message.success('Profile updated successfully!');
         } catch (error) {
             console.error('Error updating profile:', error);
@@ -116,7 +116,7 @@ export default function ProfilePage() {
         try {
             // Simulate password change
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
+
             message.success('Password changed successfully!');
             setPasswordModalVisible(false);
             passwordForm.resetFields();
@@ -172,7 +172,7 @@ export default function ProfilePage() {
             setUploading(false);
             setUploadProgress(0);
         }
-        
+
         return false; // Prevent default upload
     };
 
@@ -238,9 +238,9 @@ export default function ProfilePage() {
                         <Card className="mb-6">
                             <div className="flex items-center space-x-6">
                                 <div className="relative">
-                                    <Avatar 
-                                        size={100} 
-                                        src={profileData?.photoURL || user.photoURL} 
+                                    <Avatar
+                                        size={100}
+                                        src={profileData?.photoURL || user.photoURL}
                                         icon={<UserOutlined />}
                                     />
                                     <Upload
@@ -249,9 +249,9 @@ export default function ProfilePage() {
                                         accept="image/*"
                                         disabled={uploading}
                                     >
-                                        <Button 
-                                            icon={<CameraOutlined />} 
-                                            shape="circle" 
+                                        <Button
+                                            icon={<CameraOutlined />}
+                                            shape="circle"
                                             size="small"
                                             loading={uploading}
                                             className="absolute bottom-0 right-0"
@@ -273,8 +273,8 @@ export default function ProfilePage() {
                                     </Text>
                                 </div>
                                 <div>
-                                    <Button 
-                                        type="primary" 
+                                    <Button
+                                        type="primary"
                                         icon={<EditOutlined />}
                                         onClick={() => setPasswordModalVisible(true)}
                                     >
@@ -288,8 +288,8 @@ export default function ProfilePage() {
                     {/* Profile Content */}
                     <Col span={24}>
                         <Card>
-                            <Tabs 
-                                defaultActiveKey="personal" 
+                            <Tabs
+                                defaultActiveKey="personal"
                                 size="large"
                                 items={[
                                     {
@@ -567,7 +567,7 @@ export default function ProfilePage() {
                                                             <Text className="block font-medium">Password</Text>
                                                             <Text className="text-gray-500">Last changed 30 days ago</Text>
                                                         </div>
-                                                        <Button 
+                                                        <Button
                                                             icon={<SafetyCertificateOutlined />}
                                                             onClick={() => setPasswordModalVisible(true)}
                                                         >
@@ -609,9 +609,9 @@ export default function ProfilePage() {
                                                     showIcon
                                                 />
 
-                                                <Button 
-                                                    type="primary" 
-                                                    danger 
+                                                <Button
+                                                    type="primary"
+                                                    danger
                                                     onClick={handleDeleteAccount}
                                                 >
                                                     Delete Account

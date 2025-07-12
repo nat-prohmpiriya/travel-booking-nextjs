@@ -414,5 +414,24 @@ export const hotelService = {
             console.error('Error getting hotels by city:', error);
             throw error;
         }
+    },
+
+    // Get all hotels (admin only)
+    async getAllHotels(): Promise<Hotel[]> {
+        try {
+            const hotelsQuery = query(
+                collection(firebaseDb, 'hotels'),
+                orderBy('createdAt', 'desc')
+            );
+
+            const querySnapshot = await getDocs(hotelsQuery);
+            return querySnapshot.docs.map(doc => ({
+                ...doc.data(),
+                id: doc.id
+            } as Hotel));
+        } catch (error) {
+            console.error('Error getting all hotels:', error);
+            throw error;
+        }
     }
 };

@@ -1,8 +1,8 @@
-import { 
-    doc, 
-    setDoc, 
-    getDoc, 
-    updateDoc, 
+import {
+    doc,
+    setDoc,
+    getDoc,
+    updateDoc,
     deleteDoc,
     collection,
     query,
@@ -43,6 +43,7 @@ export interface UserProfile {
     };
     createdAt: Timestamp;
     updatedAt: Timestamp;
+    name?: string; // Optional field for user name
 }
 
 export interface CreateUserProfileData {
@@ -101,11 +102,11 @@ export const userService = {
     async getUserProfile(uid: string): Promise<UserProfile | null> {
         try {
             const userDoc = await getDoc(doc(firebaseDb, 'users', uid));
-            
+
             if (userDoc.exists()) {
                 return userDoc.data() as UserProfile;
             }
-            
+
             return null;
         } catch (error) {
             console.error('Error getting user profile:', error);
@@ -121,11 +122,11 @@ export const userService = {
                 if (obj === null || obj === undefined) {
                     return undefined;
                 }
-                
+
                 if (Array.isArray(obj)) {
                     return obj.map(deepClean).filter(item => item !== undefined);
                 }
-                
+
                 if (typeof obj === 'object') {
                     const cleaned: any = {};
                     for (const [key, value] of Object.entries(obj)) {
@@ -136,12 +137,12 @@ export const userService = {
                     }
                     return Object.keys(cleaned).length > 0 ? cleaned : undefined;
                 }
-                
+
                 return obj;
             };
 
             const cleanData = deepClean(data);
-            
+
             if (!cleanData || Object.keys(cleanData).length === 0) {
                 console.warn('No valid data to update');
                 return;
@@ -184,7 +185,7 @@ export const userService = {
     async updateUserPreferences(uid: string, preferences: Partial<UserProfile['preferences']>): Promise<void> {
         try {
             const userDoc = await getDoc(doc(firebaseDb, 'users', uid));
-            
+
             if (userDoc.exists()) {
                 const currentPreferences = userDoc.data().preferences || {};
                 const updatedPreferences = {
@@ -211,18 +212,18 @@ export const userService = {
     async updateUserAddress(uid: string, address: Partial<UserProfile['address']>): Promise<void> {
         try {
             const userDoc = await getDoc(doc(firebaseDb, 'users', uid));
-            
+
             if (userDoc.exists()) {
                 const currentAddress = userDoc.data().address || {};
-                
+
                 // Clean undefined values from address object
-                const cleanAddress = Object.entries(address).reduce((acc, [key, value]) => {
+                const cleanAddress = Object.entries(address ?? {}).reduce((acc, [key, value]) => {
                     if (value !== undefined) {
                         acc[key] = value;
                     }
                     return acc;
                 }, {} as any);
-                
+
                 const updatedAddress = {
                     ...currentAddress,
                     ...cleanAddress
@@ -245,12 +246,12 @@ export const userService = {
             const usersRef = collection(firebaseDb, 'users');
             const q = query(usersRef, where('email', '==', email));
             const querySnapshot = await getDocs(q);
-            
+
             if (!querySnapshot.empty) {
                 const userDoc = querySnapshot.docs[0];
                 return userDoc.data() as UserProfile;
             }
-            
+
             return null;
         } catch (error) {
             console.error('Error getting user by email:', error);

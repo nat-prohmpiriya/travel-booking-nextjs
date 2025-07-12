@@ -440,5 +440,55 @@ export const bookingService = {
             console.error('Error getting booking stats:', error);
             throw error;
         }
+    },
+
+    // Get all bookings (admin only)
+    async getAllBookings(filters?: BookingFilters): Promise<Booking[]> {
+        try {
+            let bookingsQuery = query(
+                collection(firebaseDb, 'bookings'),
+                orderBy('createdAt', 'desc'),
+                limit(filters?.limit || 1000)
+            );
+
+            // Apply status filter
+            if (filters?.status) {
+                bookingsQuery = query(
+                    collection(firebaseDb, 'bookings'),
+                    where('status', '==', filters.status),
+                    orderBy('createdAt', 'desc'),
+                    limit(filters?.limit || 1000)
+                );
+            }
+
+            const querySnapshot = await getDocs(bookingsQuery);
+            let bookings = querySnapshot.docs.map(doc => doc.data() as Booking);
+
+            // Client-side filtering for complex filters
+            if (filters?.dateRange) {
+                const { start, end } = filters.dateRange;
+                bookings = bookings.filter(booking => {
+                    const bookingDate = booking.createdAt.toDate();
+                    return bookingDate >= start && bookingDate <= end;
+                });
+            }
+
+            if (filters?.search) {
+                const searchTerm = filters.search.toLowerCase();
+                bookings = bookings.filter(booking => 
+                    booking.hotelName.toLowerCase().includes(searchTerm) ||
+                    booking.confirmationCode.toLowerCase().includes(searchTerm) ||
+                    booking.hotelLocation.toLowerCase().includes(searchTerm) ||
+                    booking.guestInfo.firstName.toLowerCase().includes(searchTerm) ||
+                    booking.guestInfo.lastName.toLowerCase().includes(searchTerm) ||
+                    booking.guestInfo.email.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            return bookings;
+        } catch (error) {
+            console.error('Error getting all bookings:', error);
+            throw error;
+        }
     }
 };

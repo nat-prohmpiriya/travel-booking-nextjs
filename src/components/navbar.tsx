@@ -13,11 +13,13 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePathname } from 'next/navigation'
 
 const { Header } = Layout;
 
 export const Navbar: React.FC = () => {
     const router = useRouter();
+    const pathname = usePathname();
     const { user, userProfile, loading, logout } = useAuth();
 
     const isLoggedIn = !!user;
@@ -80,7 +82,10 @@ export const Navbar: React.FC = () => {
                 break;
         }
     };
-
+    // if path is /admin don't show navbar
+    if (pathname.startsWith('/admin')) {
+        return null;
+    }
     return (
         <Header className="!bg-white bg-white shadow-sm border-b border-gray-200 px-4 flex items-center justify-between sticky top-0 z-50">
             <div className="flex items-center">

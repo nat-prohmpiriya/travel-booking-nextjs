@@ -7,6 +7,8 @@ export interface Hotel {
     amenities: string[];
     images: string[];
     description?: string;
+    imageUrl?: string; // Optional field for image URL
+    reviewCount?: number; // Optional field for review count
 }
 
 export interface Booking {
@@ -26,6 +28,11 @@ export interface SearchParams {
     checkOut: Date;
     adults: number;
     children: number;
+    rooms: number;
+    guests?: {
+        adults: number;
+        children: number;
+    };
 }
 
 export interface Destination {

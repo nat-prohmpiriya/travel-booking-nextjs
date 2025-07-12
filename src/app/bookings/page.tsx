@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { 
-    Card, 
-    Typography, 
-    Button, 
-    Row, 
-    Col, 
-    Tag, 
-    Empty, 
-    Tabs, 
+import {
+    Card,
+    Typography,
+    Button,
+    Row,
+    Col,
+    Tag,
+    Empty,
+    Tabs,
     Input,
     Select,
     DatePicker,
@@ -22,7 +22,7 @@ import {
     Breadcrumb,
     Divider
 } from 'antd';
-import { 
+import {
     CalendarOutlined,
     EnvironmentOutlined,
     UserOutlined,
@@ -71,7 +71,7 @@ interface Booking {
 export default function BookingsPage() {
     const { user } = useAuth();
     const router = useRouter();
-    
+
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -142,14 +142,14 @@ export default function BookingsPage() {
 
     useEffect(() => {
         if (!user) {
-            router.push('/auth/login');
+            router.push('/auth/signin');
             return;
         }
 
         const loadBookings = async () => {
             try {
                 const userBookings = await bookingService.getUserBookings(user.uid);
-                
+
                 // Convert Firebase bookings to our Booking interface
                 const convertedBookings: Booking[] = userBookings.map(booking => ({
                     id: booking.id,
@@ -164,8 +164,8 @@ export default function BookingsPage() {
                     rooms: booking.rooms,
                     totalPrice: booking.pricing.total,
                     bookingDate: dayjs(booking.createdAt.toDate()).format('YYYY-MM-DD HH:mm:ss'),
-                    status: booking.status === 'confirmed' ? 'upcoming' : 
-                            booking.status === 'checked-out' ? 'completed' : 
+                    status: booking.status === 'confirmed' ? 'upcoming' :
+                        booking.status === 'checked-out' ? 'completed' :
                             booking.status as 'upcoming' | 'completed' | 'cancelled',
                     canCancel: booking.policies.canCancel && booking.status === 'confirmed',
                     canModify: booking.policies.canModify && booking.status === 'confirmed',
@@ -197,7 +197,7 @@ export default function BookingsPage() {
 
         // Filter by search term
         if (searchTerm) {
-            filtered = filtered.filter(booking => 
+            filtered = filtered.filter(booking =>
                 booking.hotelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 booking.confirmationCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 booking.hotelLocation.toLowerCase().includes(searchTerm.toLowerCase())
@@ -230,15 +230,15 @@ export default function BookingsPage() {
 
         try {
             await bookingService.cancelBooking(selectedBooking.id);
-            
-            setBookings(prev => 
-                prev.map(booking => 
-                    booking.id === selectedBooking.id 
+
+            setBookings(prev =>
+                prev.map(booking =>
+                    booking.id === selectedBooking.id
                         ? { ...booking, status: 'cancelled' as const, canCancel: false, canModify: false }
                         : booking
                 )
             );
-            
+
             message.success('Booking cancelled successfully');
             setCancelModalVisible(false);
         } catch (error: any) {
@@ -255,15 +255,15 @@ export default function BookingsPage() {
         try {
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            setBookings(prev => 
-                prev.map(booking => 
-                    booking.id === selectedBooking?.id 
+
+            setBookings(prev =>
+                prev.map(booking =>
+                    booking.id === selectedBooking?.id
                         ? { ...booking, hasReview: true }
                         : booking
                 )
             );
-            
+
             message.success('Review submitted successfully');
             setReviewModalVisible(false);
             reviewForm.resetFields();
@@ -367,7 +367,7 @@ export default function BookingsPage() {
                             />
                         </Col>
                         <Col xs={24} sm={12} md={4}>
-                            <Button 
+                            <Button
                                 block
                                 onClick={() => {
                                     setSearchTerm('');
@@ -383,8 +383,8 @@ export default function BookingsPage() {
 
                 {/* Tabs */}
                 <Card>
-                    <Tabs 
-                        activeKey={activeTab} 
+                    <Tabs
+                        activeKey={activeTab}
                         onChange={setActiveTab}
                         items={[
                             {
@@ -458,8 +458,8 @@ export default function BookingsPage() {
                                                         </Text>
                                                     </div>
                                                     <div className="text-right">
-                                                        <Tag 
-                                                            color={getStatusColor(booking.status)} 
+                                                        <Tag
+                                                            color={getStatusColor(booking.status)}
                                                             icon={getStatusIcon(booking.status)}
                                                             className="mb-2"
                                                         >
@@ -506,14 +506,14 @@ export default function BookingsPage() {
                                                 </div>
 
                                                 <div className="flex flex-wrap gap-2">
-                                                    <Button 
+                                                    <Button
                                                         icon={<EyeOutlined />}
                                                         onClick={() => router.push(`/booking/confirmation/${booking.id}`)}
                                                     >
                                                         View Details
                                                     </Button>
 
-                                                    <Button 
+                                                    <Button
                                                         icon={<DownloadOutlined />}
                                                         onClick={() => console.log('Download confirmation')}
                                                     >
@@ -521,7 +521,7 @@ export default function BookingsPage() {
                                                     </Button>
 
                                                     {booking.canModify && (
-                                                        <Button 
+                                                        <Button
                                                             icon={<EditOutlined />}
                                                             disabled
                                                         >
@@ -530,7 +530,7 @@ export default function BookingsPage() {
                                                     )}
 
                                                     {booking.canCancel && (
-                                                        <Button 
+                                                        <Button
                                                             danger
                                                             icon={<DeleteOutlined />}
                                                             onClick={() => handleCancelBooking(booking)}
@@ -540,7 +540,7 @@ export default function BookingsPage() {
                                                     )}
 
                                                     {isCompleted && !booking.hasReview && (
-                                                        <Button 
+                                                        <Button
                                                             type="primary"
                                                             icon={<StarOutlined />}
                                                             onClick={() => handleWriteReview(booking)}
@@ -550,7 +550,7 @@ export default function BookingsPage() {
                                                     )}
 
                                                     {isCompleted && booking.hasReview && (
-                                                        <Button 
+                                                        <Button
                                                             icon={<StarOutlined />}
                                                             disabled
                                                         >
@@ -585,7 +585,7 @@ export default function BookingsPage() {
                     showIcon
                     className="mb-4"
                 />
-                
+
                 {selectedBooking && (
                     <div className="space-y-2">
                         <Text className="block"><strong>Hotel:</strong> {selectedBooking.hotelName}</Text>
@@ -640,8 +640,8 @@ export default function BookingsPage() {
                         label="Your Review"
                         rules={[{ required: true, message: 'Please write your review' }]}
                     >
-                        <TextArea 
-                            rows={4} 
+                        <TextArea
+                            rows={4}
                             placeholder="Share your experience with other travelers"
                         />
                     </Form.Item>

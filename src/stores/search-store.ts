@@ -53,13 +53,16 @@ export const useSearchStore = create<SearchState>((set, get) => ({
                 location: searchParams.location,
                 checkIn: searchParams.checkIn,
                 checkOut: searchParams.checkOut,
-                guests: searchParams.guests,
+                guests:
+                    searchParams.guests
+                        ? (searchParams.guests.adults ?? 1) + (searchParams.guests.children ?? 0)
+                        : 1,
                 rooms: searchParams.rooms,
                 sortBy: 'relevance' as const
             };
 
             const hotels = await hotelService.searchHotels(filters);
-            
+
             // Convert Firebase Hotel to our Hotel type
             const searchResults: Hotel[] = hotels.map(hotel => ({
                 id: hotel.id,
@@ -92,7 +95,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     loadPopularDestinations: async () => {
         try {
             const destinations = await hotelService.getPopularDestinations(8);
-            
+
             // Convert to our Destination type with mock pricing
             const popularDestinations: Destination[] = destinations.map(dest => ({
                 id: dest.id,
@@ -129,7 +132,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     loadFeaturedHotels: async () => {
         try {
             const hotels = await hotelService.getFeaturedHotels(6);
-            
+
             // Convert Firebase Hotel to our Hotel type
             const featuredHotels: Hotel[] = hotels.map(hotel => ({
                 id: hotel.id,
@@ -156,7 +159,6 @@ export const useSearchStore = create<SearchState>((set, get) => ({
                     location: 'Bangkok',
                     rating: 4.8,
                     pricePerNight: 2500,
-                    price: 2500,
                     amenities: ['Pool', 'Spa', 'Gym', 'Restaurant'],
                     images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop'],
                     imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop',
