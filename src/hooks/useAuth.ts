@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { UserRole } from '@/types/auth';
 import { useAuth as useAuthContext } from '@/contexts/AuthContext';
-import { canAccessRoute, hasRole, hasPermission } from '@/utils/auth';
 import { canAccessRoute as canAccessRouteUtil, hasRole as hasRoleUtil, hasPermission as hasPermissionUtil } from '@/utils/auth';
 
 import { UserProfile } from '@/types/user';
@@ -67,15 +66,6 @@ export const useAuth = (): UseAuthReturn => {
     canAccess,
   };
 };
-error: authContext.error,
-  isAuthenticated: !!authContext.userProfile,
-    hasRole: checkRole,
-      hasPermission: checkPermission,
-        requireAuth,
-        requireRole,
-        canAccess,
-};
-return canAccessRouteUtil(authContext.userProfile, targetPath, roles);
 
 interface UseRouteGuardOptions {
   requireAuth?: boolean;
@@ -136,7 +126,7 @@ export const useRouteGuard = (options: UseRouteGuardOptions = {}): UseRouteGuard
     }
 
     setIsAllowed(true);
-  }, [user, loading, requireAuth, allowedRoles, pathname, router, redirectTo, onUnauthorized, onForbidden]);
+  }, [userProfile, loading, requireAuth, allowedRoles, pathname, router, redirectTo, onUnauthorized, onForbidden]);
 
   return {
     isAllowed: !loading && isAllowed,
@@ -156,55 +146,57 @@ interface UsePermissionReturn {
   missingPermissions: string[];
 }
 
-const { permissions, requireAll = false } = options;
-const { userProfile, loading } = useAuth();
-const [hasPermission, setHasPermission] = useState<boolean>(false);
-const [missingPermissions, setMissingPermissions] = useState<string[]>([]);
+export const usePermission = (options: UsePermissionOptions): UsePermissionReturn => {
+  const { permissions, requireAll = false } = options;
+  const { userProfile, loading } = useAuth();
+  const [hasPermission, setHasPermission] = useState<boolean>(false);
+  const [missingPermissions, setMissingPermissions] = useState<string[]>([]);
 
-useEffect(() => {
-  if (loading || !userProfile) {
-    setHasPermission(false);
-    return;
-  }
+  useEffect(() => {
+    if (loading || !userProfile) {
+      setHasPermission(false);
+      setMissingPermissions([]);
+      return;
+    }
 
-  const permissionsArray = Array.isArray(permissions) ? permissions : [permissions];
-  const userPermissions = userProfile.permissions || [];
+    const permissionsArray = Array.isArray(permissions) ? permissions : [permissions];
+    const userPermissions = userProfile.permissions || [];
 
-  // Admin has all permissions
-  if (userProfile.role === 'admin') {
-    setHasPermission(true);
-    setMissingPermissions([]);
-    return;
-  }
+    // Admin has all permissions
+    if (userProfile.role === 'admin') {
+      setHasPermission(true);
+      setMissingPermissions([]);
+      return;
+    }
 
-  const missing: string[] = [];
-  let allowed = false;
+    const missing: string[] = [];
+    let allowed = false;
 
-  if (requireAll) {
-    // Require ALL permissions
-    allowed = permissionsArray.every(permission => {
-      const has = userPermissions.includes(permission);
-      if (!has) missing.push(permission);
-      return has;
-    });
-  } else {
-    // Require ANY permission
-    allowed = permissionsArray.some(permission => {
-      const has = userPermissions.includes(permission);
-      if (!has) missing.push(permission);
-      return has;
-    });
-  }
+    if (requireAll) {
+      // Require ALL permissions
+      allowed = permissionsArray.every(permission => {
+        const has = userPermissions.includes(permission);
+        if (!has) missing.push(permission);
+        return has;
+      });
+    } else {
+      // Require ANY permission
+      allowed = permissionsArray.some(permission => {
+        const has = userPermissions.includes(permission);
+        if (!has) missing.push(permission);
+        return has;
+      });
+    }
 
-  setHasPermission(allowed);
-  setMissingPermissions(missing);
-}, [userProfile, loading, permissions, requireAll]);
+    setHasPermission(allowed);
+    setMissingPermissions(missing);
+  }, [userProfile, loading, permissions, requireAll]);
 
-return {
-  hasPermission,
-  loading,
-  missingPermissions,
-};
+  return {
+    hasPermission,
+    loading,
+    missingPermissions,
+  };
 };
 
 export const useAuthRedirect = () => {
@@ -235,7 +227,7 @@ export const useAuthRedirect = () => {
       return;
     }
 
-    if (canAccessRoute(userProfile, intendedPath)) {
+    if (canAccessRouteUtil(userProfile, intendedPath)) {
       router.push(intendedPath);
     } else {
       redirectToRole();
