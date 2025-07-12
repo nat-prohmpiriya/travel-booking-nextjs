@@ -44,6 +44,8 @@ export interface UserProfile {
     createdAt: Timestamp;
     updatedAt: Timestamp;
     name?: string; // Optional field for user name
+    isActive?: boolean; // User account status
+    role?: 'admin' | 'partner' | 'user'; // User role
 }
 
 export interface CreateUserProfileData {
@@ -255,6 +257,68 @@ export const userService = {
             return null;
         } catch (error) {
             console.error('Error getting user by email:', error);
+            throw error;
+        }
+    },
+
+    // Get all users (admin only)
+    async getAllUsers(): Promise<UserProfile[]> {
+        try {
+            const usersRef = collection(firebaseDb, 'users');
+            const q = query(usersRef, orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
+            
+            return querySnapshot.docs.map(doc => ({
+                ...doc.data(),
+                id: doc.id
+            } as UserProfile));
+        } catch (error) {
+            console.error('Error getting all users:', error);
+            throw error;
+        }
+    },
+
+    // Update user status (admin only)
+    async updateUserStatus(uid: string, isActive: boolean): Promise<void> {
+        try {
+            await updateDoc(doc(firebaseDb, 'users', uid), {
+                isActive,
+                updatedAt: serverTimestamp()
+            });
+        } catch (error) {
+            console.error('Error updating user status:', error);
+            throw error;
+        }
+    },
+
+    // Get user statistics
+    async getUserStats(): Promise<{
+        total: number;
+        active: number;
+        newThisMonth: number;
+        totalBookings: number;
+    }> {
+        try {
+            const usersRef = collection(firebaseDb, 'users');
+            const querySnapshot = await getDocs(usersRef);
+            const users = querySnapshot.docs.map(doc => doc.data() as UserProfile);
+
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            const stats = {
+                total: users.length,
+                active: users.filter(u => u.isActive !== false).length, // Default to active if not set
+                newThisMonth: users.filter(u => {
+                    const createdAt = u.createdAt.toDate();
+                    return createdAt >= startOfMonth;
+                }).length,
+                totalBookings: 0 // This would need to be calculated from bookings collection
+            };
+
+            return stats;
+        } catch (error) {
+            console.error('Error getting user stats:', error);
             throw error;
         }
     }
