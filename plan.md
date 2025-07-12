@@ -30,13 +30,14 @@
 - [x] สร้าง AuthContext และ Zustand store
 - [x] Error handling, loading state
 - [x] mock data สำหรับโรงแรม, การ์ดโรงแรม
-- [ ] สร้างระบบค้นหาโรงแรม (Search)
-- [ ] สร้างระบบแสดงรายละเอียดโรงแรม (Hotel Details)
-- [ ] สร้างระบบจองที่พัก (Booking Flow)
-- [ ] สร้างระบบแสดงประวัติการจอง (Booking History)
-- [ ] เชื่อมต่อ LINE login จริง
-- [ ] เพิ่ม PWA: service worker, manifest, offline fallback, background sync, push notification
+- [x] สร้างระบบค้นหาโรงแรม (Search)
+- [x] สร้างระบบแสดงรายละเอียดโรงแรม (Hotel Details)
+- [x] สร้างระบบจองที่พัก (Booking Flow)
+- [x] สร้างระบบแสดงประวัติการจอง (Booking History)
 - [ ] ระบบแจ้งเตือน (push notification)
+- [ ] chat with hotel staff 
+- [ ] เชื่อมต่อ LINE login จริง
+- [ ] lineOA 
 - [ ] ระบบ partner สำหรับโรงแรม
 - [ ] ระบบรีวิว/ให้คะแนนโรงแรม
 - [ ] ระบบ payment (mock หรือเชื่อม payment gateway)
@@ -45,6 +46,7 @@
 - [ ] เพิ่ม loading/error UX ในทุกหน้า
 - [ ] เพิ่ม analytics/log
 - [ ] เขียน README, API docs, User guide
+- [ ] เพิ่ม PWA: service worker, manifest, offline fallback, background sync, push notification
 
 ## CURRENT GOAL
 

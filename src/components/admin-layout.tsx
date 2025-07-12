@@ -190,7 +190,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         {!collapsed && (
                             <div>
                                 <Title level={5} className="!mb-0 text-gray-800">
-                                    Admin Panel
+                                    <Link href="/admin">
+                                        Admin Panel
+                                    </Link>
                                 </Title>
                             </div>
                         )}

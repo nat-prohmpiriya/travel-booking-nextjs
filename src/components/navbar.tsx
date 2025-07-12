@@ -3,7 +3,7 @@
 import React from 'react';
 import { Layout, Menu, Button, Avatar, Dropdown, message } from 'antd';
 import {
-    HomeOutlined,
+    BellOutlined,
     UserOutlined,
     BookOutlined,
     LoginOutlined,
@@ -25,24 +25,21 @@ export const Navbar: React.FC = () => {
     const isLoggedIn = !!user;
     const displayName = userProfile?.name || user?.displayName || 'User';
 
-    const menuItems = [
+    const userMenuItems = [
         {
-            key: 'home',
-            icon: <HomeOutlined />,
-            label: <Link href="/">Home</Link>,
+            key: 'profile',
+            icon: <UserOutlined />,
+            label: 'Profile',
         },
         {
             key: 'bookings',
             icon: <BookOutlined />,
             label: <Link href="/bookings">My Bookings</Link>,
         },
-    ];
-
-    const userMenuItems = [
         {
-            key: 'profile',
-            icon: <UserOutlined />,
-            label: 'Profile',
+            key: 'notifications',
+            icon: <BellOutlined />,
+            label: <Link href="/notifications">My Notifications</Link>,
         },
         {
             key: 'settings',
@@ -95,12 +92,6 @@ export const Navbar: React.FC = () => {
                     </div>
                 </Link>
 
-                <Menu
-                    mode="horizontal"
-                    items={menuItems}
-                    className="border-none bg-transparent flex-1"
-                    style={{ minWidth: 0 }}
-                />
             </div>
 
             <div className="flex items-center gap-4">
