@@ -1,4 +1,5 @@
 import { Timestamp, GeoPoint } from 'firebase/firestore';
+import { ReviewStats } from './review';
 
 // =================== HOTEL INTERFACES ===================
 export interface Hotel {
@@ -12,6 +13,7 @@ export interface Hotel {
     coordinates?: GeoPoint;
     rating: number;
     reviewCount: number;
+    reviewStats?: ReviewStats;
     priceRange: {
         min: number;
         max: number;

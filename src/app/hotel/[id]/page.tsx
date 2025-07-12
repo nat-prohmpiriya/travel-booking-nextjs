@@ -41,6 +41,9 @@ import { useSearchStore } from '@/stores/search-store';
 import { SearchForm } from '@/components/search-form';
 import { SearchParams as SearchParamsType } from '@/types';
 import { hotelService } from '@/services/hotelService';
+import { ReviewList } from '@/components/review-list';
+import { AddReview } from '@/components/add-review';
+import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
 const { Title, Text, Paragraph } = Typography;
@@ -76,10 +79,12 @@ export default function HotelDetail() {
     const params = useParams();
     const hotelId = params.id as string;
     
+    const { user } = useAuth();
     const { searchResults, isLoading } = useSearchStore();
     const [hotel, setHotel] = useState<any>(null);
     const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
     const [bookingModalVisible, setBookingModalVisible] = useState<boolean>(false);
+    const [addReviewModalVisible, setAddReviewModalVisible] = useState<boolean>(false);
     const [rooms, setRooms] = useState<number>(1);
     const [guests, setGuests] = useState<number>(2);
     const [dateRange, setDateRange] = useState<any>(null);
@@ -384,60 +389,23 @@ export default function HotelDetail() {
                         </Card>
 
                         {/* Reviews */}
-                        <Card title="Guest Reviews" className="mb-6">
-                            {/* Rating Summary */}
-                            <Row gutter={24} className="mb-6">
-                                <Col xs={24} sm={8}>
-                                    <div className="text-center">
-                                        <div className="text-4xl font-bold text-blue-600 mb-2">
-                                            {hotel.rating}
-                                        </div>
-                                        <Rate disabled defaultValue={hotel.rating} className="mb-2" />
-                                        <div className="text-gray-600">
-                                            Based on {hotel.reviewCount} reviews
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col xs={24} sm={16}>
-                                    {ratingDistribution.map((item) => (
-                                        <div key={item.stars} className="flex items-center mb-2">
-                                            <span className="w-8">{item.stars}★</span>
-                                            <Progress 
-                                                percent={item.percentage} 
-                                                showInfo={false} 
-                                                className="flex-1 mx-3"
-                                            />
-                                            <span className="w-12 text-right">{item.percentage}%</span>
-                                        </div>
-                                    ))}
-                                </Col>
-                            </Row>
-
-                            <Divider />
-
-                            {/* Individual Reviews */}
-                            <div className="space-y-4">
-                                {mockReviews.map((review) => (
-                                    <div key={review.id} className="pb-4 border-b border-gray-100 last:border-b-0">
-                                        <div className="flex items-start space-x-3">
-                                            <Avatar icon={<UserOutlined />} />
-                                            <div className="flex-1">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <div>
-                                                        <Text className="font-medium">{review.userName}</Text>
-                                                        <Text className="text-gray-500 ml-2">{review.date}</Text>
-                                                    </div>
-                                                    <Rate disabled defaultValue={review.rating} className="text-sm" />
-                                                </div>
-                                                <Paragraph className="mb-2">{review.comment}</Paragraph>
-                                                <Button type="text" size="small">
-                                                    👍 Helpful ({review.helpful})
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                        <Card 
+                            title={
+                                <div className="flex items-center justify-between">
+                                    <span>รีวิวจากผู้เข้าพัก</span>
+                                    {user && (
+                                        <Button
+                                            type="primary"
+                                            onClick={() => setAddReviewModalVisible(true)}
+                                        >
+                                            เขียนรีวิว
+                                        </Button>
+                                    )}
+                                </div>
+                            }
+                            className="mb-6"
+                        >
+                            <ReviewList hotelId={hotelId} />
                         </Card>
                     </Col>
 
@@ -566,6 +534,18 @@ export default function HotelDetail() {
                     </Button>
                 </div>
             </Modal>
+
+            {/* Add Review Modal */}
+            <AddReview
+                hotelId={hotelId}
+                hotelName={hotel.name}
+                isOpen={addReviewModalVisible}
+                onClose={() => setAddReviewModalVisible(false)}
+                onSuccess={() => {
+                    setAddReviewModalVisible(false);
+                    // The ReviewList component will automatically refresh
+                }}
+            />
         </div>
     );
 }

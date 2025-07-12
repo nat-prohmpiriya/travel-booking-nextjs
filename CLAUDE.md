@@ -4,7 +4,7 @@
 - Next.js 15 + TypeScript + React 19
 - Ant Design + Tailwind CSS
 - Zustand (state management)
-- Firebase (auth, Firestore, storage)
+- Firebase (auth, Firestore, storage) as backend service
 - PWA enabled (offline support, installable)
 - mock image use Unsplash
 
@@ -32,30 +32,6 @@ src/
 └── hooks/         # Custom hooks
 ```
 
-## Key Types
-```typescript
-interface Hotel {
-  id: string;
-  name: string;
-  location: string;
-  rating: number;
-  pricePerNight: number;
-  amenities: string[];
-  images: string[];
-}
-
-interface Booking {
-  id: string;
-  userId: string;
-  hotelId: string;
-  checkIn: Date;
-  checkOut: Date;
-  guests: { adults: number; children: number };
-  totalPrice: number;
-  status: 'pending' | 'confirmed' | 'cancelled';
-}
-```
-
 ## Zustand Pattern
 ```typescript
 interface StoreState {
@@ -81,12 +57,5 @@ export const ComponentName: React.FC<Props> = ({ }) => {
   // return JSX with Ant Design
 };
 ```
-
-## Main Features to Build
-- Hotel search with filters
-- Hotel listing cards
-- Booking flow (multi-step)
-- User authentication
-- Booking history
 
 Always use error handling, loading states, and responsive design.
