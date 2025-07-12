@@ -1,7 +1,8 @@
-import React from 'react';
-import { Card, Form, Input, DatePicker, InputNumber, Button, Row, Col } from 'antd';
+import React, { useState } from 'react';
+import { Card, Form, AutoComplete, DatePicker, InputNumber, Button, Row, Col } from 'antd';
 import { SearchOutlined, EnvironmentOutlined, UserOutlined } from '@ant-design/icons';
 import { SearchParams } from '@/types';
+import { hotelService } from '@/services/hotelService';
 
 const { RangePicker } = DatePicker;
 
@@ -10,8 +11,30 @@ interface Props {
     loading?: boolean;
 }
 
-export const SearchForm: React.FC<Props> = ({ onSearch, loading = false }) => {
+export const SearchForm: React.FC<Props> = ({ onSearch, loading }) => {
     const [form] = Form.useForm();
+    const [options, setOptions] = useState<{ value: string }[]>([]);
+    const [allOptions, setAllOptions] = useState<{ value: string }[]>([]);
+
+    // ดึงข้อมูล auto suggest จาก Firestore เมื่อ component mount
+    React.useEffect(() => {
+        async function fetchOptions() {
+            try {
+                const destinations = await hotelService.getPopularDestinations(20);
+                const hotels = await hotelService.getFeaturedHotels(20);
+                const values = Array.from(new Set([
+                    ...destinations.map(d => d.name),
+                    ...hotels.map(h => h.city),
+                    ...hotels.map(h => h.name),
+                    ...hotels.map(h => h.location)
+                ])).map(val => ({ value: val }));
+                setAllOptions(values);
+            } catch (err) {
+                setAllOptions([]);
+            }
+        }
+        fetchOptions();
+    }, []);
 
     const handleFinish = (values: any) => {
         const searchParams: Partial<SearchParams> = {
@@ -26,6 +49,17 @@ export const SearchForm: React.FC<Props> = ({ onSearch, loading = false }) => {
         }
 
         onSearch(searchParams);
+    };
+
+    const handleSearchLocation = (value: string) => {
+        if (!value) {
+            setOptions([]);
+            return;
+        }
+        const filtered = allOptions.filter(opt =>
+            opt.value.toLowerCase().includes(value.toLowerCase())
+        );
+        setOptions(filtered);
     };
 
     return (
@@ -46,10 +80,13 @@ export const SearchForm: React.FC<Props> = ({ onSearch, loading = false }) => {
                             label="Where are you going?"
                             rules={[{ required: true, message: 'Please enter destination' }]}
                         >
-                            <Input
-                                prefix={<EnvironmentOutlined />}
+                            <AutoComplete
+                                options={options}
+                                onSearch={handleSearchLocation}
                                 placeholder="City, hotel, or attraction"
                                 size="large"
+                                allowClear
+                                filterOption={false}
                             />
                         </Form.Item>
                     </Col>

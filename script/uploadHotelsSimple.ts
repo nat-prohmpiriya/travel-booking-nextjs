@@ -3,7 +3,7 @@
 // Use firebase-admin for server-side upload
 import admin from 'firebase-admin';
 import serviceAccount from '../firebaseAdminKey.json';
-import { hotels } from '../src/data/hotels';
+import { hotels } from './data/hotels';
 import { Hotel } from '@/types';
 
 admin.initializeApp({
