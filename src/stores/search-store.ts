@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { SearchParams, Hotel, Destination } from '@/types';
+import { SearchParams, Hotel, Destination, SearchFilters } from '@/types';
 import { hotelService } from '@/services/hotelService';
 
 interface SearchState {
@@ -7,10 +7,12 @@ interface SearchState {
     searchResults: Hotel[];
     popularDestinations: Destination[];
     featuredHotels: Hotel[];
+    currentFilters: Partial<SearchFilters>;
     isLoading: boolean;
     error: string | null;
     setSearchParams: (params: Partial<SearchParams>) => void;
     setSearchResults: (results: Hotel[]) => void;
+    setFilters: (filters: Partial<SearchFilters>) => void;
     setLoading: (loading: boolean) => void;
     setError: (error: string | null) => void;
     searchHotels: () => Promise<void>;
@@ -23,6 +25,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     searchResults: [],
     popularDestinations: [],
     featuredHotels: [],
+    currentFilters: {},
     isLoading: false,
     error: null,
 
@@ -36,6 +39,12 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         set({ searchResults: results });
     },
 
+    setFilters: (filters: Partial<SearchFilters>) => {
+        set((state) => ({
+            currentFilters: { ...state.currentFilters, ...filters }
+        }));
+    },
+
     setLoading: (loading: boolean) => {
         set({ isLoading: loading });
     },
@@ -45,7 +54,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     },
 
     searchHotels: async () => {
-        const { searchParams } = get();
+        const { searchParams, currentFilters } = get();
         set({ isLoading: true, error: null });
 
         try {
@@ -53,45 +62,35 @@ export const useSearchStore = create<SearchState>((set, get) => ({
                 location: searchParams.location,
                 checkIn: searchParams.checkIn,
                 checkOut: searchParams.checkOut,
-                guests:
-                    searchParams.guests
-                        ? (searchParams.guests.adults ?? 1) + (searchParams.guests.children ?? 0)
-                        : 1,
+                guests: searchParams.guests
+                    ? searchParams.guests.adults + searchParams.guests.children
+                    : searchParams.adults || 1,
                 rooms: searchParams.rooms,
-                sortBy: 'relevance' as const
+                // Apply current filters
+                priceRange: currentFilters.priceRange,
+                rating: currentFilters.rating,
+                amenities: currentFilters.amenities,
+                sortBy: currentFilters.sortBy || 'relevance'
             };
 
             const hotels = await hotelService.searchHotels(filters);
 
-            // Convert Firebase Hotel to our Hotel type
+            // Transform data for display
             const searchResults: Hotel[] = hotels.map(hotel => ({
-                id: hotel.id,
-                name: hotel.name,
-                location: hotel.location,
-                address: hotel.address ?? '',
-                city: hotel.city ?? '',
-                country: hotel.country ?? '',
-                rating: hotel.rating,
-                pricePerNight: hotel.priceRange?.min ?? 0,
-                price: hotel.priceRange?.min ?? 0,
-                priceRange: hotel.priceRange ?? { min: 0, max: 0 },
-                amenities: hotel.amenities ?? [],
-                images: hotel.images ?? [],
-                description: hotel.description ?? '',
-                imageUrl: hotel.images?.[0] || '',
-                reviewCount: hotel.reviewCount ?? 0,
-                coordinates: hotel.coordinates,
-                tags: hotel.tags ?? [],
-                policies: hotel.policies ?? [],
-                phone: hotel.phone ?? '',
-                email: hotel.email ?? '',
-                rooms: hotel.rooms ?? [],
-                contact: hotel.contact ?? { phone: hotel.phone ?? '', email: hotel.email ?? '' },
-                isActive: hotel.isActive ?? true,
-                isFeatured: hotel.isFeatured ?? false,
-                createdAt: hotel.createdAt ?? new Date().toISOString(),
-                updatedAt: hotel.updatedAt ?? new Date().toISOString(),
-                distance: 0 // TODO: Calculate distance if coordinates available
+                ...hotel,
+                price: hotel.priceRange?.min || 0,
+                pricePerNight: hotel.priceRange?.min || 0,
+                imageUrl: hotel.images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop',
+                distance: 0, // TODO: Calculate distance if coordinates available
+                // Ensure all required fields have defaults
+                address: hotel.address || '',
+                city: hotel.city || '',
+                country: hotel.country || '',
+                amenities: hotel.amenities || [],
+                reviewCount: hotel.reviewCount || 0,
+                tags: hotel.tags || [],
+                phone: hotel.phone || hotel.contact?.phone || '',
+                email: hotel.email || hotel.contact?.email || ''
             }));
 
             set({
@@ -101,8 +100,9 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         } catch (error) {
             console.error('Search error:', error);
             set({
-                error: 'Search failed. Please try again.',
-                isLoading: false
+                error: 'ไม่สามารถค้นหาโรงแรมได้ กรุณาลองใหม่อีกครั้ง',
+                isLoading: false,
+                searchResults: [] // Clear results on error
             });
         }
     },

@@ -38,6 +38,11 @@ export interface Hotel {
     tags?: string[];
     phone?: string;
     email?: string;
+    // Additional properties for display
+    price?: number; // Current price for display
+    pricePerNight?: number; // Price per night
+    imageUrl?: string; // Primary image URL
+    distance?: number; // Distance from search location
 }
 
 export interface HotelRoom {

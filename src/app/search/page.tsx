@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { 
-    Row, 
-    Col, 
-    Card, 
-    Typography, 
-    Button, 
-    Slider, 
-    Checkbox, 
-    Radio, 
-    Space, 
+import {
+    Row,
+    Col,
+    Card,
+    Typography,
+    Button,
+    Slider,
+    Checkbox,
+    Radio,
+    Space,
     Divider,
     Tag,
     Rate,
@@ -18,9 +18,9 @@ import {
     Spin,
     Empty
 } from 'antd';
-import { 
-    FilterOutlined, 
-    EnvironmentOutlined, 
+import {
+    FilterOutlined,
+    EnvironmentOutlined,
     StarOutlined,
     WifiOutlined,
     CarOutlined,
@@ -29,7 +29,7 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSearchStore } from '@/stores/search-store';
 import { SearchForm } from '@/components/search-form';
-import { SearchParams as SearchParamsType } from '@/types';
+import { SearchParams as SearchParamsType, SearchFilters as HotelSearchFilters } from '@/types';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -44,21 +44,26 @@ interface SearchFilters {
 export default function SearchResults() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { 
-        searchResults, 
-        isLoading, 
+    const {
+        searchResults,
+        isLoading,
+        error,
         searchParams: currentSearchParams,
+        currentFilters,
         setSearchParams,
-        searchHotels 
+        setFilters: setStoreFilters,
+        searchHotels
     } = useSearchStore();
 
-    const [filters, setFilters] = useState<SearchFilters>({
-        priceRange: [0, 10000],
-        rating: 0,
-        amenities: [],
-        hotelType: 'all'
-    });
     const [sortBy, setSortBy] = useState<string>('relevance');
+
+    // Use filters from store with defaults
+    const filters = {
+        priceRange: currentFilters.priceRange || [0, 10000] as [number, number],
+        rating: currentFilters.rating || 0,
+        amenities: currentFilters.amenities || [],
+        hotelType: 'all'
+    };
 
     useEffect(() => {
         const location = searchParams.get('location');
@@ -72,10 +77,15 @@ export default function SearchResults() {
                 location,
                 ...(checkIn && { checkIn: new Date(checkIn) }),
                 ...(checkOut && { checkOut: new Date(checkOut) }),
-                ...(guests && { guests: parseInt(guests) }),
+                ...(guests && {
+                    guests: {
+                        adults: parseInt(guests),
+                        children: 0
+                    }
+                }),
                 ...(rooms && { rooms: parseInt(rooms) })
             };
-            
+
             setSearchParams(params);
             searchHotels();
         }
@@ -87,26 +97,32 @@ export default function SearchResults() {
     };
 
     const handleFilterChange = (key: keyof SearchFilters, value: any) => {
-        setFilters(prev => ({ ...prev, [key]: value }));
+        const newFilters = { ...currentFilters, [key]: value };
+        setStoreFilters(newFilters);
+        // Trigger search with new filters
+        searchWithFilters(newFilters);
+    };
+
+    const searchWithFilters = async (newFilters: Partial<HotelSearchFilters>) => {
+        const currentParams = currentSearchParams;
+        if (!currentParams?.location) return;
+
+        // Update filters in store and trigger search
+        setStoreFilters(newFilters);
+        await searchHotels();
     };
 
     const handleBookHotel = (hotelId: string) => {
         router.push(`/hotel/${hotelId}`);
     };
 
-    const filteredResults = searchResults.filter(hotel => {
-        const withinPriceRange = hotel.price >= filters.priceRange[0] && hotel.price <= filters.priceRange[1];
-        const meetsMinRating = hotel.rating >= filters.rating;
-        const hasRequiredAmenities = filters.amenities.length === 0 || 
-            filters.amenities.every(amenity => hotel.amenities?.includes(amenity));
-        
-        return withinPriceRange && meetsMinRating && hasRequiredAmenities;
-    });
+    // Remove client-side filtering since we're doing server-side filtering
+    const displayResults = searchResults;
 
-    const sortedResults = [...filteredResults].sort((a, b) => {
+    const sortedResults = [...displayResults].sort((a, b) => {
         switch (sortBy) {
-            case 'price-low': return a.price - b.price;
-            case 'price-high': return b.price - a.price;
+            case 'price-low': return (a.price || 0) - (b.price || 0);
+            case 'price-high': return (b.price || 0) - (a.price || 0);
             case 'rating': return b.rating - a.rating;
             case 'distance': return (a.distance || 0) - (b.distance || 0);
             default: return 0;
@@ -118,10 +134,9 @@ export default function SearchResults() {
             {/* Search Form */}
             <div className="bg-white shadow-sm border-b">
                 <div className="container mx-auto px-4 py-6">
-                    <SearchForm 
-                        onSearch={handleSearch} 
+                    <SearchForm
+                        onSearch={handleSearch}
                         loading={isLoading}
-                        defaultValues={currentSearchParams}
                     />
                 </div>
             </div>
@@ -145,7 +160,7 @@ export default function SearchResults() {
                                     max={10000}
                                     value={filters.priceRange}
                                     onChange={(value) => handleFilterChange('priceRange', value)}
-                                    formatter={(value) => `฿${value}`}
+                                    tipFormatter={(value?: number) => value ? `฿${value}` : '฿0'}
                                 />
                                 <div className="flex justify-between text-sm text-gray-500">
                                     <span>฿{filters.priceRange[0]}</span>
@@ -214,8 +229,8 @@ export default function SearchResults() {
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <Title level={3} className="!mb-1">
-                                    {currentSearchParams?.location ? 
-                                        `Hotels in ${currentSearchParams.location}` : 
+                                    {currentSearchParams?.location ?
+                                        `Hotels in ${currentSearchParams.location}` :
                                         'Search Results'
                                     }
                                 </Title>
@@ -236,6 +251,23 @@ export default function SearchResults() {
                             </Select>
                         </div>
 
+                        {/* Error State */}
+                        {error && (
+                            <Card className="mb-6">
+                                <div className="text-center py-4">
+                                    <Text type="danger">{error}</Text>
+                                    <div className="mt-2">
+                                        <Button
+                                            type="primary"
+                                            onClick={() => searchHotels()}
+                                        >
+                                            Try Again
+                                        </Button>
+                                    </div>
+                                </div>
+                            </Card>
+                        )}
+
                         {/* Loading */}
                         {isLoading && (
                             <div className="text-center py-12">
@@ -250,14 +282,13 @@ export default function SearchResults() {
                         {!isLoading && sortedResults.length === 0 && (
                             <Card>
                                 <Empty
-                                    description="No hotels found matching your criteria"
+                                    description="ไม่พบโรงแรมที่ตรงกับเงื่อนไขการค้นหา"
                                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                                 >
-                                    <Button type="primary" onClick={() => setFilters({
+                                    <Button type="primary" onClick={() => setStoreFilters({
                                         priceRange: [0, 10000],
                                         rating: 0,
-                                        amenities: [],
-                                        hotelType: 'all'
+                                        amenities: []
                                     })}>
                                         Clear Filters
                                     </Button>
@@ -268,8 +299,8 @@ export default function SearchResults() {
                         {/* Hotel Cards */}
                         <div className="space-y-6">
                             {sortedResults.map((hotel) => (
-                                <Card 
-                                    key={hotel.id} 
+                                <Card
+                                    key={hotel.id}
                                     className="hover:shadow-lg transition-shadow cursor-pointer"
                                     onClick={() => handleBookHotel(hotel.id)}
                                 >
@@ -304,7 +335,7 @@ export default function SearchResults() {
                                                 </div>
                                                 <div className="text-right">
                                                     <div className="text-2xl font-bold text-blue-600">
-                                                        ฿{hotel.price.toLocaleString()}
+                                                        ฿{(hotel.price || 0).toLocaleString()}
                                                     </div>
                                                     <Text className="text-gray-500">per night</Text>
                                                 </div>
@@ -334,8 +365,8 @@ export default function SearchResults() {
                                                         Free cancellation
                                                     </Text>
                                                 </div>
-                                                <Button 
-                                                    type="primary" 
+                                                <Button
+                                                    type="primary"
                                                     size="large"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
