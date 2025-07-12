@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { 
-    Table, 
-    Button, 
-    Input, 
-    Space, 
-    Tag, 
-    Avatar, 
+import {
+    Table,
+    Button,
+    Input,
+    Space,
+    Tag,
+    Avatar,
     Modal,
     message,
     Dropdown,
@@ -32,10 +32,11 @@ import {
     EnvironmentOutlined,
     CalendarOutlined,
     CrownOutlined,
-    BanOutlined,
     CheckCircleOutlined,
     CloseCircleOutlined
 } from '@ant-design/icons';
+import { IoBanOutline } from "react-icons/io5";
+
 import { userService, UserProfile } from '@/services/userService';
 import { bookingService } from '@/services/bookingService';
 import dayjs from 'dayjs';
@@ -76,7 +77,7 @@ export default function UsersManagement() {
         try {
             setLoading(true);
             const usersData = await userService.getAllUsers();
-            
+
             // Get booking data for each user
             const usersWithBookingData: UserTableData[] = await Promise.all(
                 usersData.map(async (user) => {
@@ -84,7 +85,7 @@ export default function UsersManagement() {
                         const userBookings = await bookingService.getUserBookings(user.uid);
                         const bookingCount = userBookings.length;
                         const totalSpent = userBookings.reduce((sum, booking) => sum + booking.pricing.total, 0);
-                        const lastBooking = userBookings.length > 0 
+                        const lastBooking = userBookings.length > 0
                             ? dayjs(userBookings[0].createdAt.toDate()).format('DD/MM/YYYY')
                             : undefined;
 
@@ -188,8 +189,8 @@ export default function UsersManagement() {
             key: 'user',
             render: (record: UserTableData) => (
                 <div className="flex items-center">
-                    <Avatar 
-                        src={record.photoURL} 
+                    <Avatar
+                        src={record.photoURL}
                         icon={<UserOutlined />}
                         className="mr-3"
                     />
@@ -215,8 +216,8 @@ export default function UsersManagement() {
             dataIndex: 'role',
             key: 'role',
             render: (role: string) => (
-                <Tag 
-                    color={getRoleColor(role)} 
+                <Tag
+                    color={getRoleColor(role)}
                     icon={getRoleIcon(role)}
                 >
                     {(role || 'user').charAt(0).toUpperCase() + (role || 'user').slice(1)}
@@ -228,7 +229,7 @@ export default function UsersManagement() {
             key: 'status',
             render: (record: UserTableData) => (
                 <div className="flex items-center">
-                    <Tag 
+                    <Tag
                         color={record.isActive !== false ? 'green' : 'red'}
                         icon={record.isActive !== false ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
                     >
@@ -324,7 +325,7 @@ export default function UsersManagement() {
                     },
                     {
                         key: 'ban',
-                        icon: <BanOutlined />,
+                        icon: <IoBanOutline />,
                         label: record.isActive !== false ? 'Deactivate User' : 'Activate User',
                         onClick: () => handleStatusToggle(record.uid, record.isActive !== false)
                     }
@@ -479,7 +480,7 @@ export default function UsersManagement() {
                         pageSize: 10,
                         showSizeChanger: true,
                         showQuickJumper: true,
-                        showTotal: (total, range) => 
+                        showTotal: (total, range) =>
                             `${range[0]}-${range[1]} of ${total} users`
                     }}
                     scroll={{ x: 1200 }}
@@ -499,9 +500,9 @@ export default function UsersManagement() {
                         <Row gutter={[16, 16]}>
                             <Col span={8}>
                                 <div className="text-center">
-                                    <Avatar 
+                                    <Avatar
                                         size={80}
-                                        src={selectedUser.photoURL} 
+                                        src={selectedUser.photoURL}
                                         icon={<UserOutlined />}
                                         className="mb-3"
                                     />
@@ -509,7 +510,7 @@ export default function UsersManagement() {
                                         <Text className="block font-medium text-lg">
                                             {selectedUser.firstName} {selectedUser.lastName}
                                         </Text>
-                                        <Tag 
+                                        <Tag
                                             color={getRoleColor(selectedUser.role)}
                                             className="mt-2"
                                         >

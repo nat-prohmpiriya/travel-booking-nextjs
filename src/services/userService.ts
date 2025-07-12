@@ -12,6 +12,7 @@ import {
     Timestamp
 } from 'firebase/firestore';
 import { firebaseDb } from '@/utils/firebaseInit';
+import { orderBy as firestoreOrderBy } from 'firebase/firestore';
 
 export interface UserProfile {
     uid: string;
@@ -267,11 +268,11 @@ export const userService = {
             const usersRef = collection(firebaseDb, 'users');
             const q = query(usersRef, orderBy('createdAt', 'desc'));
             const querySnapshot = await getDocs(q);
-            
-            return querySnapshot.docs.map(doc => ({
-                ...doc.data(),
-                id: doc.id
-            } as UserProfile));
+
+            return querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                return { ...data, uid: doc.id } as UserProfile;
+            });
         } catch (error) {
             console.error('Error getting all users:', error);
             throw error;
@@ -323,3 +324,12 @@ export const userService = {
         }
     }
 };
+/**
+ * Wrapper for Firestore's orderBy function.
+ * @param field - The field to order by.
+ * @param direction - 'asc' or 'desc'.
+ * @returns Firestore QueryOrderByConstraint
+ */
+function orderBy(field: string, direction: 'asc' | 'desc') {
+    return firestoreOrderBy(field, direction);
+}
