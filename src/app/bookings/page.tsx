@@ -46,7 +46,6 @@ const { Title, Text } = Typography;
 const { Search } = Input;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
-const { TabPane } = Tabs;
 const { TextArea } = Input;
 
 interface Booking {
@@ -275,14 +274,20 @@ export default function BookingsPage() {
             {/* Breadcrumb */}
             <div className="bg-white border-b">
                 <div className="container mx-auto px-4 py-4">
-                    <Breadcrumb>
-                        <Breadcrumb.Item>
-                            <Link href="/">
-                                <HomeOutlined /> Home
-                            </Link>
-                        </Breadcrumb.Item>
-                        <Breadcrumb.Item>My Bookings</Breadcrumb.Item>
-                    </Breadcrumb>
+                    <Breadcrumb
+                        items={[
+                            {
+                                title: (
+                                    <Link href="/">
+                                        <HomeOutlined /> Home
+                                    </Link>
+                                )
+                            },
+                            {
+                                title: 'My Bookings'
+                            }
+                        ]}
+                    />
                 </div>
             </div>
 

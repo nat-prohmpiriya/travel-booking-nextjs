@@ -181,22 +181,30 @@ export default function BookingPage() {
             {/* Breadcrumb */}
             <div className="bg-white border-b">
                 <div className="container mx-auto px-4 py-4">
-                    <Breadcrumb>
-                        <Breadcrumb.Item>
-                            <Link href="/">
-                                <HomeOutlined /> Home
-                            </Link>
-                        </Breadcrumb.Item>
-                        <Breadcrumb.Item>
-                            <Link href="/search">Search Results</Link>
-                        </Breadcrumb.Item>
-                        <Breadcrumb.Item>
-                            <Link href={`/hotel/${bookingData.hotelId}`}>
-                                {bookingData.hotelName}
-                            </Link>
-                        </Breadcrumb.Item>
-                        <Breadcrumb.Item>Booking</Breadcrumb.Item>
-                    </Breadcrumb>
+                    <Breadcrumb
+                        items={[
+                            {
+                                title: (
+                                    <Link href="/">
+                                        <HomeOutlined /> Home
+                                    </Link>
+                                )
+                            },
+                            {
+                                title: <Link href="/search">Search Results</Link>
+                            },
+                            {
+                                title: (
+                                    <Link href={`/hotel/${bookingData.hotelId}`}>
+                                        {bookingData.hotelName}
+                                    </Link>
+                                )
+                            },
+                            {
+                                title: 'Booking'
+                            }
+                        ]}
+                    />
                 </div>
             </div>
 
