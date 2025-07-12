@@ -109,8 +109,9 @@ export const HotelMap: React.FC<HotelMapProps> = ({
   if (isLoading) {
     return (
       <Card className={`w-full ${className}`}>
-        <div className="flex justify-center items-center" style={{ height }}>
-          <Spin size="large" tip="กำลังโหลดแผนที่..." />
+        <div className="flex flex-col justify-center items-center" style={{ height }}>
+          <Spin size="large" />
+          <div className="mt-3 text-gray-600">กำลังโหลดแผนที่...</div>
         </div>
       </Card>
     );
