@@ -112,9 +112,9 @@ export const Navbar: React.FC = () => {
                             <Avatar
                                 src={user?.photoURL || undefined}
                                 icon={<UserOutlined />}
-                                className="mr-2"
+                                className=""
                             />
-                            <span className="text-gray-700">{displayName}</span>
+                            <span className="ml-4 text-gray-700">{displayName}</span>
                         </div>
                     </Dropdown>
                 ) : (
