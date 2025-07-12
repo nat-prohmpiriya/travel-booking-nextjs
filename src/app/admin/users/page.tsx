@@ -37,21 +37,22 @@ import {
 } from '@ant-design/icons';
 import { IoBanOutline } from "react-icons/io5";
 
-import { userService, UserProfile } from '@/services/userService';
+import { userService } from '@/services/userService';
 import { bookingService } from '@/services/bookingService';
 import dayjs from 'dayjs';
+import { UserProfile } from '@/types/user';
 
 const { Title, Text } = Typography;
 const { Search } = Input;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
-interface UserTableData extends UserProfile {
+type UserTableData = UserProfile & {
     key: string;
     bookingCount?: number;
     totalSpent?: number;
     lastBooking?: string;
-}
+};
 
 export default function UsersManagement() {
     const [users, setUsers] = useState<UserTableData[]>([]);
@@ -94,7 +95,8 @@ export default function UsersManagement() {
                             key: user.uid,
                             bookingCount,
                             totalSpent,
-                            lastBooking
+                            lastBooking,
+                            preferences: user.preferences ?? undefined
                         };
                     } catch (error) {
                         // If user has no bookings or error occurred
@@ -102,7 +104,8 @@ export default function UsersManagement() {
                             ...user,
                             key: user.uid,
                             bookingCount: 0,
-                            totalSpent: 0
+                            totalSpent: 0,
+                            preferences: user.preferences ?? undefined
                         };
                     }
                 })
@@ -595,15 +598,21 @@ export default function UsersManagement() {
                             <Row gutter={[16, 8]}>
                                 <Col span={8}>
                                     <Text className="text-gray-500">Currency:</Text>
-                                    <Text className="ml-2">{selectedUser.preferences.currency}</Text>
+                                    <Text className="ml-2">
+                                        {selectedUser.preferences && selectedUser.preferences.currency ? selectedUser.preferences.currency : "-"}
+                                    </Text>
                                 </Col>
                                 <Col span={8}>
                                     <Text className="text-gray-500">Language:</Text>
-                                    <Text className="ml-2">{selectedUser.preferences.language}</Text>
+                                    <Text className="ml-2">
+                                        {selectedUser.preferences && selectedUser.preferences.language ? selectedUser.preferences.language : "-"}
+                                    </Text>
                                 </Col>
                                 <Col span={8}>
                                     <Text className="text-gray-500">Timezone:</Text>
-                                    <Text className="ml-2">{selectedUser.preferences.timezone}</Text>
+                                    <Text className="ml-2">
+                                        {selectedUser.preferences && selectedUser.preferences.timezone ? selectedUser.preferences.timezone : "-"}
+                                    </Text>
                                 </Col>
                             </Row>
                         </Card>
