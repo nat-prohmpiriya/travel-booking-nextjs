@@ -4,8 +4,10 @@ import { Timestamp } from 'firebase/firestore';
 export interface UserProfile {
     uid: string;
     email: string;
+    emailVerified?: boolean;
     firstName: string;
     lastName: string;
+    name?: string;
     phone?: string;
     dateOfBirth?: string;
     gender?: 'male' | 'female' | 'other' | 'prefer-not-to-say';
@@ -31,9 +33,10 @@ export interface UserProfile {
     };
     createdAt: Timestamp;
     updatedAt: Timestamp;
-    name?: string;
     isActive?: boolean;
-    role?: 'admin' | 'partner' | 'user';
+    role: 'admin' | 'partner' | 'user'; // required
+    permissions?: string[];
+    lastLoginAt?: Timestamp;
 }
 
 export interface CreateUserProfileData {

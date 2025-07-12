@@ -1,7 +1,8 @@
+import { Timestamp } from 'firebase/firestore';
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
+import {
   User,
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -11,8 +12,9 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { auth, firestore } from '@/utils/firebaseInit';
-import { AuthUser, UserRole, AuthContextType } from '@/types/auth';
+import { firebaseAuth, firebaseDb } from '@/utils/firebaseInit';
+import { UserRole, AuthContextType } from '@/types/auth';
+import { UserProfile } from '@/types/user';
 import { getUserRole, getUserPermissions, setAuthCookies, clearAuthCookies } from '@/utils/auth';
 
 interface EnhancedAuthContextProviderProps {
@@ -32,50 +34,72 @@ export const useEnhancedAuth = (): AuthContextType => {
 export const EnhancedAuthContextProvider: React.FC<EnhancedAuthContextProviderProps> = ({
   children,
 }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Convert Firebase User to AuthUser
-  const convertToAuthUser = async (firebaseUser: User): Promise<AuthUser> => {
+  // Convert Firebase User to UserProfile
+  const convertToUserProfile = async (firebaseUser: User): Promise<UserProfile> => {
     const role = await getUserRole(firebaseUser.uid);
     const permissions = await getUserPermissions(firebaseUser.uid);
-
+    // Ensure role is only 'admin' | 'user' | 'partner'
+    const validRoles: UserRole[] = ['admin', 'user', 'partner'];
+    const safeRole: UserRole = validRoles.includes(role) ? role : 'user';
+    // Convert date string to Firestore Timestamp
+    const createdAt = firebaseUser.metadata.creationTime
+      ? Timestamp.fromDate(new Date(firebaseUser.metadata.creationTime))
+      : Timestamp.now();
+    const lastLoginAt = firebaseUser.metadata.lastSignInTime
+      ? Timestamp.fromDate(new Date(firebaseUser.metadata.lastSignInTime))
+      : Timestamp.now();
     return {
       uid: firebaseUser.uid,
-      email: firebaseUser.email,
-      displayName: firebaseUser.displayName,
-      photoURL: firebaseUser.photoURL,
-      role,
+      email: firebaseUser.email || '',
+      firstName: firebaseUser.displayName || '',
+      lastName: '',
+      name: firebaseUser.displayName || '',
+      photoURL: firebaseUser.photoURL || undefined,
+      role: safeRole,
       emailVerified: firebaseUser.emailVerified,
       permissions,
-      createdAt: firebaseUser.metadata.creationTime ? new Date(firebaseUser.metadata.creationTime) : undefined,
-      lastLoginAt: firebaseUser.metadata.lastSignInTime ? new Date(firebaseUser.metadata.lastSignInTime) : undefined,
+      createdAt,
+      lastLoginAt,
+      preferences: {
+        currency: 'THB',
+        language: 'th',
+        timezone: 'Asia/Bangkok',
+        notifications: {
+          email: true,
+          sms: false,
+          push: true,
+          marketing: false,
+        },
+      },
+      isActive: true,
     };
   };
 
   // Initialize auth state listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
       try {
         setLoading(true);
         setError(null);
 
         if (firebaseUser) {
-          const authUser = await convertToAuthUser(firebaseUser);
-          setUser(authUser);
-          
+          const profile = await convertToUserProfile(firebaseUser);
+          setUserProfile(profile);
           // Set auth cookies for middleware
           const token = await firebaseUser.getIdToken();
-          setAuthCookies(authUser, token);
+          setAuthCookies(profile, token);
         } else {
-          setUser(null);
+          setUserProfile(null);
           clearAuthCookies();
         }
       } catch (err: any) {
         console.error('Auth state change error:', err);
         setError(err.message || 'Authentication error occurred');
-        setUser(null);
+        setUserProfile(null);
         clearAuthCookies();
       } finally {
         setLoading(false);
@@ -87,11 +111,11 @@ export const EnhancedAuthContextProvider: React.FC<EnhancedAuthContextProviderPr
 
   // Create user document in Firestore
   const createUserDocument = async (
-    uid: string, 
-    email: string, 
+    uid: string,
+    email: string,
     additionalData: any = {}
   ): Promise<void> => {
-    const userRef = doc(firestore, 'users', uid);
+    const userRef = doc(firebaseDb, 'users', uid);
     const userSnap = await getDoc(userRef);
 
     if (!userSnap.exists()) {
@@ -119,7 +143,7 @@ export const EnhancedAuthContextProvider: React.FC<EnhancedAuthContextProviderPr
       setLoading(true);
       setError(null);
 
-      const result = await signInWithEmailAndPassword(auth, email, password);
+      const result = await signInWithEmailAndPassword(firebaseAuth, email, password);
       await createUserDocument(result.user.uid, email);
     } catch (err: any) {
       console.error('Sign in error:', err);
@@ -132,16 +156,16 @@ export const EnhancedAuthContextProvider: React.FC<EnhancedAuthContextProviderPr
 
   // Sign up
   const signUp = async (
-    email: string, 
-    password: string, 
+    email: string,
+    password: string,
     userData: any = {}
   ): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
 
-      const result = await createUserWithEmailAndPassword(auth, email, password);
-      
+      const result = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+
       // Update display name if provided
       if (userData.displayName) {
         await updateProfile(result.user, {
@@ -164,8 +188,8 @@ export const EnhancedAuthContextProvider: React.FC<EnhancedAuthContextProviderPr
     try {
       setLoading(true);
       setError(null);
-      
-      await firebaseSignOut(auth);
+
+      await firebaseSignOut(firebaseAuth);
       clearAuthCookies();
     } catch (err: any) {
       console.error('Sign out error:', err);
@@ -178,15 +202,14 @@ export const EnhancedAuthContextProvider: React.FC<EnhancedAuthContextProviderPr
 
   // Refresh user data
   const refreshUser = async (): Promise<void> => {
-    if (!auth.currentUser) return;
+    if (!firebaseAuth.currentUser) return;
 
     try {
-      const authUser = await convertToAuthUser(auth.currentUser);
-      setUser(authUser);
-      
+      const profile = await convertToUserProfile(firebaseAuth.currentUser);
+      setUserProfile(profile);
       // Update auth cookies
-      const token = await auth.currentUser.getIdToken(true);
-      setAuthCookies(authUser, token);
+      const token = await firebaseAuth.currentUser.getIdToken(true);
+      setAuthCookies(profile, token);
     } catch (err: any) {
       console.error('Refresh user error:', err);
       setError(err.message || 'Failed to refresh user data');
@@ -195,23 +218,23 @@ export const EnhancedAuthContextProvider: React.FC<EnhancedAuthContextProviderPr
 
   // Check if user has role(s)
   const hasRole = (role: UserRole | UserRole[]): boolean => {
-    if (!user) return false;
+    if (!userProfile) return false;
     const roles = Array.isArray(role) ? role : [role];
-    return roles.includes(user.role);
+    return roles.includes(userProfile.role);
   };
 
   // Check if user has permission
   const hasPermission = (permission: string): boolean => {
-    if (!user || !user.permissions) return false;
-    if (user.role === 'admin') return true; // Admin has all permissions
-    return user.permissions.includes(permission);
+    if (!userProfile || !userProfile.permissions) return false;
+    if (userProfile.role === 'admin') return true; // Admin has all permissions
+    return userProfile.permissions.includes(permission);
   };
 
   const contextValue: AuthContextType = {
-    user,
+    userProfile,
     loading,
     error,
-    isAuthenticated: !!user,
+    isAuthenticated: !!userProfile,
     hasRole,
     hasPermission,
     signIn,

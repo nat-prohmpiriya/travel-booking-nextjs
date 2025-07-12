@@ -47,16 +47,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
         const hasAccess = config.allowedRoles.includes(userProfile.role as UserRole);
 
         if (!hasAccess) {
-          // Map userProfile to AuthUser type for getRedirectUrl
-          const authUser = {
-            uid: userProfile.uid,
-            email: userProfile.email,
-            displayName: userProfile.name || userProfile.firstName || '',
-            emailVerified: true, // หรือกำหนดตาม business logic
-            photoURL: userProfile.photoURL ?? null,
-            role: (userProfile.role ?? 'user') as UserRole
-          };
-          const fallbackUrl = config.redirectTo || getRedirectUrl(authUser);
+          const fallbackUrl = config.redirectTo || getRedirectUrl(userProfile);
           router.push(fallbackUrl);
           return;
         }
@@ -108,16 +99,6 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
       return <FallbackComponent />;
     }
 
-    // Map userProfile to AuthUser type for getRedirectUrl
-    const authUser = {
-      uid: userProfile.uid,
-      email: userProfile.email,
-      displayName: userProfile.name || userProfile.firstName || '',
-      emailVerified: true, // หรือกำหนดตาม business logic
-      photoURL: userProfile.photoURL ?? null,
-      role: (userProfile.role ?? 'user') as UserRole
-    };
-
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Result
@@ -128,7 +109,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
           extra={
             <Button
               type="primary"
-              onClick={() => router.push(getRedirectUrl(authUser))}
+              onClick={() => router.push(getRedirectUrl(userProfile))}
               icon={<HomeOutlined />}
             >
               กลับหน้าหลัก
