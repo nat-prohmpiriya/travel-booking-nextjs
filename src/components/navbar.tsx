@@ -161,7 +161,7 @@ export const Navbar: React.FC = () => {
                     </div>
                 </Link>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 hidden lg:block">
                     {
                         mainMenuItems.map(item => (
                             <Button disabled={!item.available} key={item.key} color="default" variant="link">
@@ -176,12 +176,13 @@ export const Navbar: React.FC = () => {
 
 
                 {/* Mobile Menu Button */}
-                {/* <Button
-                    type="text"
-                    icon={<MenuOutlined />}
-                    onClick={() => setMobileMenuOpen(true)}
-                    className="md:hidden ml-4"
-                /> */}
+                <div className="block lg:hidden ml-4">
+                    <Button
+                        type="text"
+                        icon={<MenuOutlined />}
+                        onClick={() => setMobileMenuOpen(true)}
+                    />
+                </div>
             </div>
 
             <div className="flex items-center gap-4">
@@ -225,6 +226,7 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Mobile Navigation Drawer */}
+
             <Drawer
                 title={
                     <div className="text-2xl font-bold text-blue-600">
