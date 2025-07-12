@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { Button, Typography, Row, Col, message } from 'antd';
+import { Button, Typography, Row, Col, message, Spin, Alert } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useSearchStore } from '@/stores/search-store';
 import { SearchForm } from '@/components/search-form';
@@ -17,6 +17,7 @@ export default function Home() {
     popularDestinations,
     featuredHotels,
     isLoading,
+    error,
     setSearchParams,
     searchHotels,
     loadPopularDestinations,
@@ -31,7 +32,7 @@ export default function Home() {
   const handleSearch = async (params: Partial<SearchParams>) => {
     setSearchParams(params);
     await searchHotels();
-    
+
     // Build search URL with parameters
     const searchUrl = new URLSearchParams();
     if (params.location) searchUrl.set('location', params.location);
@@ -39,7 +40,7 @@ export default function Home() {
     if (params.checkOut) searchUrl.set('checkOut', params.checkOut.toISOString());
     if (params.guests) searchUrl.set('guests', params.guests.toString());
     if (params.rooms) searchUrl.set('rooms', params.rooms.toString());
-    
+
     router.push(`/search?${searchUrl.toString()}`);
   };
 
@@ -84,16 +85,26 @@ export default function Home() {
           <Title level={2} className="text-center mb-12">
             Popular Destinations
           </Title>
-          <Row gutter={[24, 24]}>
-            {popularDestinations.map((destination) => (
-              <Col xs={24} sm={12} lg={6} key={destination.id}>
-                <DestinationCard
-                  destination={destination}
-                  onClick={() => handleDestinationClick(destination)}
-                />
-              </Col>
-            ))}
-          </Row>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <Spin size="large" />
+            </div>
+          ) : error ? (
+            <div className="max-w-xl mx-auto mb-8">
+              <Alert message="เกิดข้อผิดพลาด" description={error} type="error" showIcon />
+            </div>
+          ) : (
+            <Row gutter={[24, 24]}>
+              {popularDestinations.map((destination) => (
+                <Col xs={24} sm={12} lg={6} key={destination.id}>
+                  <DestinationCard
+                    destination={destination}
+                    onClick={() => handleDestinationClick(destination)}
+                  />
+                </Col>
+              ))}
+            </Row>
+          )}
         </div>
       </section>
 
@@ -103,16 +114,26 @@ export default function Home() {
           <Title level={2} className="text-center mb-12">
             Featured Hotels
           </Title>
-          <Row gutter={[24, 24]}>
-            {featuredHotels.map((hotel) => (
-              <Col xs={24} md={8} key={hotel.id}>
-                <HotelCard
-                  hotel={hotel}
-                  onBookClick={() => handleBookHotel(hotel)}
-                />
-              </Col>
-            ))}
-          </Row>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <Spin size="large" />
+            </div>
+          ) : error ? (
+            <div className="max-w-xl mx-auto mb-8">
+              <Alert message="เกิดข้อผิดพลาด" description={error} type="error" showIcon />
+            </div>
+          ) : (
+            <Row gutter={[24, 24]}>
+              {featuredHotels.map((hotel) => (
+                <Col xs={24} md={8} key={hotel.id}>
+                  <HotelCard
+                    hotel={hotel}
+                    onBookClick={() => handleBookHotel(hotel)}
+                  />
+                </Col>
+              ))}
+            </Row>
+          )}
         </div>
       </section>
 
