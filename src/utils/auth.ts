@@ -1,11 +1,12 @@
-import { UserRole, AuthUser } from '@/types/auth';
+import { UserRole } from '@/types/auth';
+import { UserProfile } from '@/types/user';
 import { doc, getDoc } from 'firebase/firestore';
 import { firebaseDb } from '@/utils/firebaseInit';
 
 /**
  * Check if user has required role(s)
  */
-export const hasRole = (user: AuthUser | null, requiredRoles: UserRole | UserRole[]): boolean => {
+export const hasRole = (user: UserProfile | null, requiredRoles: UserRole | UserRole[]): boolean => {
   if (!user) return false;
 
   const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
@@ -15,7 +16,7 @@ export const hasRole = (user: AuthUser | null, requiredRoles: UserRole | UserRol
 /**
  * Check if user has specific permission
  */
-export const hasPermission = (user: AuthUser | null, permission: string): boolean => {
+export const hasPermission = (user: UserProfile | null, permission: string): boolean => {
   if (!user || !user.permissions) return false;
   return user.permissions.includes(permission);
 };
@@ -85,11 +86,11 @@ export const DEFAULT_PERMISSIONS: Record<UserRole, string[]> = {
 /**
  * Check if user can access a specific route
  */
-export const canAccessRoute = (
-  user: AuthUser | null,
+export function canAccessRoute(
+  user: UserProfile | null,
   pathname: string,
   requiredRoles?: UserRole[]
-): boolean => {
+): boolean {
   // Public routes
   const publicRoutes = ['/', '/search', '/hotel', '/auth'];
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
@@ -125,12 +126,12 @@ export const canAccessRoute = (
   }
 
   return true;
-};
+}
 
 /**
  * Get redirect URL based on user role
  */
-export const getRedirectUrl = (user: AuthUser | null, intendedPath?: string): string => {
+export const getRedirectUrl = (user: UserProfile | null, intendedPath?: string): string => {
   if (!user) {
     return '/auth/signin';
   }
@@ -156,7 +157,7 @@ export const getRedirectUrl = (user: AuthUser | null, intendedPath?: string): st
 /**
  * Set auth cookies for middleware
  */
-export const setAuthCookies = (user: AuthUser, token: string): void => {
+export const setAuthCookies = (user: UserProfile, token: string): void => {
   if (typeof document !== 'undefined') {
     // Set auth token cookie
     document.cookie = `auth-token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; secure; samesite=strict`;

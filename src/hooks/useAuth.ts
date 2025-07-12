@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { AuthUser, UserRole } from '@/types/auth';
+import { UserRole } from '@/types/auth';
 import { useAuth as useAuthContext } from '@/contexts/AuthContext';
 import { canAccessRoute, hasRole, hasPermission } from '@/utils/auth';
+import { canAccessRoute as canAccessRouteUtil, hasRole as hasRoleUtil, hasPermission as hasPermissionUtil } from '@/utils/auth';
 
 import { UserProfile } from '@/types/user';
 
@@ -20,52 +21,61 @@ interface UseAuthReturn {
   canAccess: (pathname?: string, roles?: UserRole[]) => boolean;
 }
 
-const authContext = useAuthContext();
-const router = useRouter();
-const pathname = usePathname();
+export const useAuth = (): UseAuthReturn => {
+  const authContext = useAuthContext();
+  const router = useRouter();
+  const pathname = usePathname();
 
-const checkRole = (roles: UserRole | UserRole[]): boolean => {
-  return hasRole(authContext.userProfile, roles);
+  const checkRole = (roles: UserRole | UserRole[]): boolean => {
+    return hasRoleUtil(authContext.userProfile, roles);
+  };
+
+  const checkPermission = (permission: string): boolean => {
+    return hasPermissionUtil(authContext.userProfile, permission);
+  };
+
+  const requireAuth = (): void => {
+    if (!authContext.userProfile && !authContext.loading) {
+      router.push(`/auth/signin?redirect=${encodeURIComponent(pathname)}`);
+    }
+  };
+
+  const requireRole = (roles: UserRole | UserRole[]): void => {
+    if (!authContext.userProfile && !authContext.loading) {
+      router.push(`/auth/signin?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    if (authContext.userProfile && !checkRole(roles)) {
+      router.push('/unauthorized');
+    }
+  };
+
+  const canAccess = (path?: string, roles?: UserRole[]): boolean => {
+    const targetPath = path || pathname;
+    return canAccessRouteUtil(authContext.userProfile, targetPath, roles);
+  };
+
+  return {
+    userProfile: authContext.userProfile,
+    loading: authContext.loading,
+    error: (authContext as any).error ?? null,
+    isAuthenticated: !!authContext.userProfile,
+    hasRole: checkRole,
+    hasPermission: checkPermission,
+    requireAuth,
+    requireRole,
+    canAccess,
+  };
 };
-
-const checkPermission = (permission: string): boolean => {
-  return hasPermission(authContext.userProfile, permission);
-};
-
-const requireAuth = (): void => {
-  if (!authContext.userProfile && !authContext.loading) {
-    router.push(`/auth/signin?redirect=${encodeURIComponent(pathname)}`);
-  }
-};
-
-const requireRole = (roles: UserRole | UserRole[]): void => {
-  if (!authContext.userProfile && !authContext.loading) {
-    router.push(`/auth/signin?redirect=${encodeURIComponent(pathname)}`);
-    return;
-  }
-
-  if (authContext.userProfile && !checkRole(roles)) {
-    router.push('/unauthorized');
-  }
-};
-
-const canAccess = (path?: string, roles?: UserRole[]): boolean => {
-  const targetPath = path || pathname;
-  return canAccessRoute(authContext.userProfile, targetPath, roles);
-};
-
-return {
-  userProfile: authContext.userProfile,
-  loading: authContext.loading,
-  error: authContext.error,
+error: authContext.error,
   isAuthenticated: !!authContext.userProfile,
-  hasRole: checkRole,
-  hasPermission: checkPermission,
-  requireAuth,
-  requireRole,
-  canAccess,
+    hasRole: checkRole,
+      hasPermission: checkPermission,
+        requireAuth,
+        requireRole,
+        canAccess,
 };
-};
+return canAccessRouteUtil(authContext.userProfile, targetPath, roles);
 
 interface UseRouteGuardOptions {
   requireAuth?: boolean;
@@ -146,60 +156,59 @@ interface UsePermissionReturn {
   missingPermissions: string[];
 }
 
-export const usePermission = (options: UsePermissionOptions): UsePermissionReturn => {
-  const { permissions, requireAll = false } = options;
-  const { userProfile, loading } = useAuth();
-  const [hasPermission, setHasPermission] = useState<boolean>(false);
-  const [missingPermissions, setMissingPermissions] = useState<string[]>([]);
+const { permissions, requireAll = false } = options;
+const { userProfile, loading } = useAuth();
+const [hasPermission, setHasPermission] = useState<boolean>(false);
+const [missingPermissions, setMissingPermissions] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (loading || !user) {
-      setHasPermission(false);
-      return;
-    }
+useEffect(() => {
+  if (loading || !userProfile) {
+    setHasPermission(false);
+    return;
+  }
 
-    const permissionsArray = Array.isArray(permissions) ? permissions : [permissions];
-    const userPermissions = user.permissions || [];
+  const permissionsArray = Array.isArray(permissions) ? permissions : [permissions];
+  const userPermissions = userProfile.permissions || [];
 
-    // Admin has all permissions
-    if (user.role === 'admin') {
-      setHasPermission(true);
-      setMissingPermissions([]);
-      return;
-    }
+  // Admin has all permissions
+  if (userProfile.role === 'admin') {
+    setHasPermission(true);
+    setMissingPermissions([]);
+    return;
+  }
 
-    const missing: string[] = [];
-    let allowed = false;
+  const missing: string[] = [];
+  let allowed = false;
 
-    if (requireAll) {
-      // Require ALL permissions
-      allowed = permissionsArray.every(permission => {
-        const has = userPermissions.includes(permission);
-        if (!has) missing.push(permission);
-        return has;
-      });
-    } else {
-      // Require ANY permission
-      allowed = permissionsArray.some(permission => {
-        const has = userPermissions.includes(permission);
-        if (!has) missing.push(permission);
-        return has;
-      });
-    }
+  if (requireAll) {
+    // Require ALL permissions
+    allowed = permissionsArray.every(permission => {
+      const has = userPermissions.includes(permission);
+      if (!has) missing.push(permission);
+      return has;
+    });
+  } else {
+    // Require ANY permission
+    allowed = permissionsArray.some(permission => {
+      const has = userPermissions.includes(permission);
+      if (!has) missing.push(permission);
+      return has;
+    });
+  }
 
-    setHasPermission(allowed);
-    setMissingPermissions(missing);
-  }, [user, loading, permissions, requireAll]);
+  setHasPermission(allowed);
+  setMissingPermissions(missing);
+}, [userProfile, loading, permissions, requireAll]);
 
-  return {
-    hasPermission,
-    loading,
-    missingPermissions,
-  };
+return {
+  hasPermission,
+  loading,
+  missingPermissions,
+};
 };
 
 export const useAuthRedirect = () => {
-  const { user, loading } = useAuth();
+  const { userProfile, loading } = useAuth();
   const router = useRouter();
 
   const redirectToRole = (): void => {
