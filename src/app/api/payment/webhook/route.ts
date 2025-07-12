@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import serviceAccount from '../../../../../firebaseAdminKey.json';
+import adminConfig from '@/utils/adminFirebase';
 import admin from 'firebase-admin';
 
 const firestore = admin.firestore();
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+  credential: admin.credential.cert(adminConfig as admin.ServiceAccount),
   databaseURL: "https://travel-booking-867f5-default-rtdb.asia-southeast1.firebasedatabase.app"
 });
 

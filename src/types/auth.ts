@@ -1,16 +1,8 @@
 export type UserRole = 'admin' | 'user' | 'partner' | 'guest';
 
-export interface AuthUser {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
-  role: UserRole;
-  emailVerified: boolean;
-  createdAt?: Date;
-  lastLoginAt?: Date;
-  permissions?: string[];
-}
+// Deprecated: AuthUser. Use UserProfile instead.
+
+import { UserProfile } from './user';
 
 export interface RouteGuardConfig {
   requireAuth: boolean;
@@ -20,7 +12,7 @@ export interface RouteGuardConfig {
 }
 
 export interface AuthContextType {
-  user: AuthUser | null;
+  userProfile: UserProfile | null;
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;

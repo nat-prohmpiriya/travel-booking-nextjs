@@ -6,8 +6,10 @@ import { AuthUser, UserRole } from '@/types/auth';
 import { useAuth as useAuthContext } from '@/contexts/AuthContext';
 import { canAccessRoute, hasRole, hasPermission } from '@/utils/auth';
 
+import { UserProfile } from '@/types/user';
+
 interface UseAuthReturn {
-  user: AuthUser | null;
+  userProfile: UserProfile | null;
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
@@ -18,52 +20,51 @@ interface UseAuthReturn {
   canAccess: (pathname?: string, roles?: UserRole[]) => boolean;
 }
 
-export const useAuth = (): UseAuthReturn => {
-  const authContext = useAuthContext();
-  const router = useRouter();
-  const pathname = usePathname();
+const authContext = useAuthContext();
+const router = useRouter();
+const pathname = usePathname();
 
-  const checkRole = (roles: UserRole | UserRole[]): boolean => {
-    return hasRole(authContext.user, roles);
-  };
+const checkRole = (roles: UserRole | UserRole[]): boolean => {
+  return hasRole(authContext.userProfile, roles);
+};
 
-  const checkPermission = (permission: string): boolean => {
-    return hasPermission(authContext.user, permission);
-  };
+const checkPermission = (permission: string): boolean => {
+  return hasPermission(authContext.userProfile, permission);
+};
 
-  const requireAuth = (): void => {
-    if (!authContext.user && !authContext.loading) {
-      router.push(`/auth/signin?redirect=${encodeURIComponent(pathname)}`);
-    }
-  };
+const requireAuth = (): void => {
+  if (!authContext.userProfile && !authContext.loading) {
+    router.push(`/auth/signin?redirect=${encodeURIComponent(pathname)}`);
+  }
+};
 
-  const requireRole = (roles: UserRole | UserRole[]): void => {
-    if (!authContext.user && !authContext.loading) {
-      router.push(`/auth/signin?redirect=${encodeURIComponent(pathname)}`);
-      return;
-    }
+const requireRole = (roles: UserRole | UserRole[]): void => {
+  if (!authContext.userProfile && !authContext.loading) {
+    router.push(`/auth/signin?redirect=${encodeURIComponent(pathname)}`);
+    return;
+  }
 
-    if (authContext.user && !checkRole(roles)) {
-      router.push('/unauthorized');
-    }
-  };
+  if (authContext.userProfile && !checkRole(roles)) {
+    router.push('/unauthorized');
+  }
+};
 
-  const canAccess = (path?: string, roles?: UserRole[]): boolean => {
-    const targetPath = path || pathname;
-    return canAccessRoute(authContext.user, targetPath, roles);
-  };
+const canAccess = (path?: string, roles?: UserRole[]): boolean => {
+  const targetPath = path || pathname;
+  return canAccessRoute(authContext.userProfile, targetPath, roles);
+};
 
-  return {
-    user: authContext.user,
-    loading: authContext.loading,
-    error: authContext.error,
-    isAuthenticated: !!authContext.user,
-    hasRole: checkRole,
-    hasPermission: checkPermission,
-    requireAuth,
-    requireRole,
-    canAccess,
-  };
+return {
+  userProfile: authContext.userProfile,
+  loading: authContext.loading,
+  error: authContext.error,
+  isAuthenticated: !!authContext.userProfile,
+  hasRole: checkRole,
+  hasPermission: checkPermission,
+  requireAuth,
+  requireRole,
+  canAccess,
+};
 };
 
 interface UseRouteGuardOptions {
@@ -89,7 +90,7 @@ export const useRouteGuard = (options: UseRouteGuardOptions = {}): UseRouteGuard
     onForbidden
   } = options;
 
-  const { user, loading, error } = useAuth();
+  const { userProfile, loading, error } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isAllowed, setIsAllowed] = useState<boolean>(false);
@@ -98,7 +99,7 @@ export const useRouteGuard = (options: UseRouteGuardOptions = {}): UseRouteGuard
     if (loading) return;
 
     // Check authentication requirement
-    if (requireAuth && !user) {
+    if (requireAuth && !userProfile) {
       if (onUnauthorized) {
         onUnauthorized();
       } else {
@@ -110,9 +111,9 @@ export const useRouteGuard = (options: UseRouteGuardOptions = {}): UseRouteGuard
     }
 
     // Check role requirement
-    if (allowedRoles && user) {
-      const hasRequiredRole = allowedRoles.includes(user.role);
-      
+    if (allowedRoles && userProfile) {
+      const hasRequiredRole = allowedRoles.includes(userProfile.role ?? 'user');
+
       if (!hasRequiredRole) {
         if (onForbidden) {
           onForbidden();
@@ -147,7 +148,7 @@ interface UsePermissionReturn {
 
 export const usePermission = (options: UsePermissionOptions): UsePermissionReturn => {
   const { permissions, requireAll = false } = options;
-  const { user, loading } = useAuth();
+  const { userProfile, loading } = useAuth();
   const [hasPermission, setHasPermission] = useState<boolean>(false);
   const [missingPermissions, setMissingPermissions] = useState<string[]>([]);
 
@@ -202,9 +203,9 @@ export const useAuthRedirect = () => {
   const router = useRouter();
 
   const redirectToRole = (): void => {
-    if (!user) return;
+    if (!userProfile) return;
 
-    switch (user.role) {
+    switch (userProfile.role) {
       case 'admin':
         router.push('/admin');
         break;
@@ -220,12 +221,12 @@ export const useAuthRedirect = () => {
   };
 
   const redirectWithFallback = (intendedPath: string): void => {
-    if (!user) {
+    if (!userProfile) {
       router.push(`/auth/signin?redirect=${encodeURIComponent(intendedPath)}`);
       return;
     }
 
-    if (canAccessRoute(user, intendedPath)) {
+    if (canAccessRoute(userProfile, intendedPath)) {
       router.push(intendedPath);
     } else {
       redirectToRole();

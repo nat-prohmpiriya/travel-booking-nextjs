@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { firebaseAuth } from '@/utils/firebaseInit';
 import { authService } from '@/services/auth';
-import { UserProfile } from '@/services/userService';
+import { UserProfile } from '@/types/user';
 
 interface AuthContextType {
     user: User | null;
@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(firebaseAuth, async (user: User | null) => {
             setUser(user);
-            
+
             if (user) {
                 try {
                     const profile = await authService.getUserProfile(user.uid);
@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             } else {
                 setUserProfile(null);
             }
-            
+
             setLoading(false);
         });
 

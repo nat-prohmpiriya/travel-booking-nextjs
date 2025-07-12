@@ -3,11 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Spin, Result, Button } from 'antd';
-import { 
-  LoadingOutlined, 
-  LockOutlined, 
+import {
+  LoadingOutlined,
+  LockOutlined,
   UserOutlined,
-  HomeOutlined 
+  HomeOutlined
 } from '@ant-design/icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole, RouteGuardConfig } from '@/types/auth';
@@ -18,11 +18,11 @@ interface RouteGuardProps {
   config: RouteGuardConfig;
 }
 
-export const RouteGuard: React.FC<RouteGuardProps> = ({ 
-  children, 
-  config 
+export const RouteGuard: React.FC<RouteGuardProps> = ({
+  children,
+  config
 }) => {
-  const { user, loading } = useAuth();
+  const { user, userProfile, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isChecking, setIsChecking] = useState<boolean>(true);
@@ -36,18 +36,27 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
       setIsChecking(false);
 
       // Check if authentication is required
-      if (config.requireAuth && !user) {
+      if (config.requireAuth && !userProfile) {
         const redirectUrl = `/auth/signin?redirect=${encodeURIComponent(pathname)}`;
         router.push(redirectUrl);
         return;
       }
 
       // Check role-based access
-      if (config.allowedRoles && user) {
-        const hasAccess = config.allowedRoles.includes(user.role);
-        
+      if (config.allowedRoles && userProfile && userProfile.role) {
+        const hasAccess = config.allowedRoles.includes(userProfile.role as UserRole);
+
         if (!hasAccess) {
-          const fallbackUrl = config.redirectTo || getRedirectUrl(user);
+          // Map userProfile to AuthUser type for getRedirectUrl
+          const authUser = {
+            uid: userProfile.uid,
+            email: userProfile.email,
+            displayName: userProfile.name || userProfile.firstName || '',
+            emailVerified: true, // หรือกำหนดตาม business logic
+            photoURL: userProfile.photoURL ?? null,
+            role: (userProfile.role ?? 'user') as UserRole
+          };
+          const fallbackUrl = config.redirectTo || getRedirectUrl(authUser);
           router.push(fallbackUrl);
           return;
         }
@@ -61,8 +70,8 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   if (loading || isChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Spin 
-          size="large" 
+        <Spin
+          size="large"
           indicator={<LoadingOutlined className="text-4xl" />}
         />
       </div>
@@ -70,7 +79,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   }
 
   // Show unauthorized if user doesn't have access
-  if (config.requireAuth && !user) {
+  if (config.requireAuth && !userProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Result
@@ -79,8 +88,8 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
           subTitle="กรุณาเข้าสู่ระบบเพื่อเข้าถึงหน้านี้"
           icon={<LockOutlined />}
           extra={
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               onClick={() => router.push('/auth/signin')}
               icon={<UserOutlined />}
             >
@@ -93,11 +102,21 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   }
 
   // Show forbidden if user doesn't have required role
-  if (config.allowedRoles && user && !config.allowedRoles.includes(user.role)) {
+  if (config.allowedRoles && userProfile && userProfile.role && !config.allowedRoles.includes(userProfile.role as UserRole)) {
     if (config.fallbackComponent) {
       const FallbackComponent = config.fallbackComponent;
       return <FallbackComponent />;
     }
+
+    // Map userProfile to AuthUser type for getRedirectUrl
+    const authUser = {
+      uid: userProfile.uid,
+      email: userProfile.email,
+      displayName: userProfile.name || userProfile.firstName || '',
+      emailVerified: true, // หรือกำหนดตาม business logic
+      photoURL: userProfile.photoURL ?? null,
+      role: (userProfile.role ?? 'user') as UserRole
+    };
 
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -107,9 +126,9 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
           subTitle="คุณไม่มีสิทธิ์เข้าถึงหน้านี้"
           icon={<LockOutlined />}
           extra={
-            <Button 
-              type="primary" 
-              onClick={() => router.push(getRedirectUrl(user))}
+            <Button
+              type="primary"
+              onClick={() => router.push(getRedirectUrl(authUser))}
               icon={<HomeOutlined />}
             >
               กลับหน้าหลัก
