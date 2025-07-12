@@ -209,7 +209,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
             <Layout>
                 {/* Header */}
-                <Header className=" px-4 flex items-center justify-between" style={{ background: '#fff', padding: '0 16px' }}>
+                <Header
+                    className="px-4 flex items-center justify-between mb-2"
+                    style={{
+                        background: '#fff',
+                        boxShadow: '5px 5px 5px rgba(0, 0, 0, 0.1)',
+                    }}
+                >
                     <div className="flex items-center">
                         <Button
                             type="text"
@@ -260,6 +266,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     </div>
                 </Content>
             </Layout>
-        </Layout>
+        </Layout >
     );
 }
