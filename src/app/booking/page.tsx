@@ -138,7 +138,7 @@ export default function BookingPage() {
             const serviceFee = 100;
             const total = subtotal + taxes + serviceFee;
 
-            // Create booking data
+            // Create booking data (without payment processing)
             const createBookingData: CreateBookingData = {
                 userId: user.uid,
                 hotelId: bookingData.hotelId,
@@ -166,23 +166,27 @@ export default function BookingPage() {
                     serviceFee: serviceFee,
                     total: total,
                     currency: 'THB'
-                },
-                paymentInfo: {
-                    method: 'card',
-                    cardDetails: {
-                        cardNumber: values.cardNumber,
-                        expiryDate: values.expiryDate,
-                        cvv: values.cvv,
-                        cardHolderName: values.cardHolderName
-                    }
                 }
             };
 
-            // Create booking in Firebase
+            // Create booking in Firebase with pending payment status
             const booking = await bookingService.createBooking(createBookingData);
             
-            message.success('Booking confirmed successfully!');
-            router.push(`/booking/confirmation/${booking.id}`);
+            // Prepare payment data
+            const paymentData = {
+                bookingId: booking.id,
+                hotelName: bookingData.hotelName,
+                guestName: `${guestFormValues.firstName} ${guestFormValues.lastName}`,
+                guestEmail: guestFormValues.email,
+                checkIn: bookingData.checkIn,
+                checkOut: bookingData.checkOut,
+                rooms: bookingData.rooms,
+                guests: bookingData.guests,
+                amount: total
+            };
+            
+            // Redirect to payment page
+            router.push(`/booking/payment?data=${encodeURIComponent(JSON.stringify(paymentData))}`);
         } catch (error) {
             console.error('Booking error:', error);
             message.error('Booking failed. Please try again.');

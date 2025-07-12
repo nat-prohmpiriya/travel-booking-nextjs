@@ -75,7 +75,7 @@ export interface CreateBookingData {
         total: number;
         currency: string;
     };
-    paymentInfo: {
+    paymentInfo?: {
         method: 'card' | 'paypal' | 'bank';
         cardDetails?: {
             cardNumber: string;

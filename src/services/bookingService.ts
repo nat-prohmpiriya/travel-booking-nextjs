@@ -66,7 +66,7 @@ export const bookingService = {
             guestInfo,
             pricing: data.pricing,
             paymentInfo: {
-                method: data.paymentInfo.method,
+                method: data.paymentInfo?.method || 'card',
                 status: 'pending',
                 paymentDate: serverTimestamp() as Timestamp
             },

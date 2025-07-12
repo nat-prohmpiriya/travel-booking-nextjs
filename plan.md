@@ -34,6 +34,8 @@
 - [x] สร้างระบบแสดงรายละเอียดโรงแรม (Hotel Details)
 - [x] สร้างระบบจองที่พัก (Booking Flow)
 - [x] สร้างระบบแสดงประวัติการจอง (Booking History)
+- [ ] travel diary 
+- [ ] comunity
 - [ ] ระบบแจ้งเตือน (push notification)
 - [ ] chat with hotel staff 
 - [ ] เชื่อมต่อ LINE login จริง
