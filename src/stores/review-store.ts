@@ -163,12 +163,12 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
             
             let errorMessage = 'ไม่สามารถส่งรีวิวได้ กรุณาลองใหม่อีกครั้ง';
             
-            if (error.message?.includes('does not exist')) {
-                errorMessage = 'ไม่พบข้อมูลโรงแรมนี้ กรุณาลองใหม่อีกครั้ง';
-            } else if (error.code === 'permission-denied') {
+            if (error.code === 'permission-denied') {
                 errorMessage = 'คุณไม่มีสิทธิ์ในการเขียนรีวิว';
             } else if (error.code === 'unauthenticated') {
                 errorMessage = 'กรุณาเข้าสู่ระบบเพื่อเขียนรีวิว';
+            } else if (error.code === 'network-request-failed') {
+                errorMessage = 'ไม่สามารถเชื่อมต่อเครือข่ายได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต';
             }
             
             set({
