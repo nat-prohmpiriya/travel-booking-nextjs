@@ -116,8 +116,39 @@ export const userService = {
     // Update user profile
     async updateUserProfile(uid: string, data: UpdateUserProfileData): Promise<void> {
         try {
+            // Deep clean function to remove undefined values recursively
+            const deepClean = (obj: any): any => {
+                if (obj === null || obj === undefined) {
+                    return undefined;
+                }
+                
+                if (Array.isArray(obj)) {
+                    return obj.map(deepClean).filter(item => item !== undefined);
+                }
+                
+                if (typeof obj === 'object') {
+                    const cleaned: any = {};
+                    for (const [key, value] of Object.entries(obj)) {
+                        const cleanedValue = deepClean(value);
+                        if (cleanedValue !== undefined) {
+                            cleaned[key] = cleanedValue;
+                        }
+                    }
+                    return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+                }
+                
+                return obj;
+            };
+
+            const cleanData = deepClean(data);
+            
+            if (!cleanData || Object.keys(cleanData).length === 0) {
+                console.warn('No valid data to update');
+                return;
+            }
+
             const updateData = {
-                ...data,
+                ...cleanData,
                 updatedAt: serverTimestamp()
             };
 
@@ -183,9 +214,18 @@ export const userService = {
             
             if (userDoc.exists()) {
                 const currentAddress = userDoc.data().address || {};
+                
+                // Clean undefined values from address object
+                const cleanAddress = Object.entries(address).reduce((acc, [key, value]) => {
+                    if (value !== undefined) {
+                        acc[key] = value;
+                    }
+                    return acc;
+                }, {} as any);
+                
                 const updatedAddress = {
                     ...currentAddress,
-                    ...address
+                    ...cleanAddress
                 };
 
                 await updateDoc(doc(firebaseDb, 'users', uid), {

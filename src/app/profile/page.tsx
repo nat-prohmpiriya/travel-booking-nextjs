@@ -37,6 +37,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth';
 import { userService, UserProfile, UpdateUserProfileData } from '@/services/userService';
+import { storageService, UploadProgress } from '@/services/storageService';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 
@@ -53,6 +54,8 @@ export default function ProfilePage() {
     const [loading, setLoading] = useState<boolean>(false);
     const [passwordModalVisible, setPasswordModalVisible] = useState<boolean>(false);
     const [profileData, setProfileData] = useState<UserProfile | null>(null);
+    const [uploadProgress, setUploadProgress] = useState<number>(0);
+    const [uploading, setUploading] = useState<boolean>(false);
 
     useEffect(() => {
         if (!user) {
@@ -124,14 +127,64 @@ export default function ProfilePage() {
         }
     };
 
-    const handleAvatarUpload = async (file: any) => {
-        try {
-            // Simulate avatar upload
-            message.success('Profile picture updated successfully!');
-        } catch (error) {
-            message.error('Failed to upload profile picture');
+    const handleAvatarUpload = async (file: File) => {
+        if (!user) {
+            message.error('User not authenticated');
+            return false;
         }
+
+        try {
+            setUploading(true);
+            setUploadProgress(0);
+
+            // Validate file
+            const validation = storageService.validateImageFile(file);
+            if (!validation.isValid) {
+                message.error(validation.error);
+                return false;
+            }
+
+            // Upload with progress tracking
+            const result = await storageService.replaceProfilePicture(
+                user.uid,
+                file,
+                profileData?.photoURL ? extractStoragePath(profileData.photoURL) : undefined,
+                (progress: UploadProgress) => {
+                    setUploadProgress(progress.percentage);
+                }
+            );
+
+            // Update user profile with new photo URL
+            await userService.updateUserProfile(user.uid, {
+                photoURL: result.url
+            });
+
+            // Update local state
+            if (profileData) {
+                setProfileData({ ...profileData, photoURL: result.url });
+            }
+
+            message.success('Profile picture updated successfully!');
+        } catch (error: any) {
+            console.error('Error uploading profile picture:', error);
+            message.error(error.message || 'Failed to upload profile picture');
+        } finally {
+            setUploading(false);
+            setUploadProgress(0);
+        }
+        
         return false; // Prevent default upload
+    };
+
+    // Helper function to extract storage path from download URL
+    const extractStoragePath = (downloadUrl: string): string | undefined => {
+        try {
+            const url = new URL(downloadUrl);
+            const pathMatch = url.pathname.match(/\/o\/(.+)\?/);
+            return pathMatch ? decodeURIComponent(pathMatch[1]) : undefined;
+        } catch {
+            return undefined;
+        }
     };
 
     const handleDeleteAccount = () => {
@@ -187,21 +240,28 @@ export default function ProfilePage() {
                                 <div className="relative">
                                     <Avatar 
                                         size={100} 
-                                        src={user.photoURL} 
+                                        src={profileData?.photoURL || user.photoURL} 
                                         icon={<UserOutlined />}
                                     />
                                     <Upload
                                         showUploadList={false}
                                         beforeUpload={handleAvatarUpload}
                                         accept="image/*"
+                                        disabled={uploading}
                                     >
                                         <Button 
                                             icon={<CameraOutlined />} 
                                             shape="circle" 
                                             size="small"
+                                            loading={uploading}
                                             className="absolute bottom-0 right-0"
                                         />
                                     </Upload>
+                                    {uploading && uploadProgress > 0 && (
+                                        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-blue-600">
+                                            {Math.round(uploadProgress)}%
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex-1">
                                     <Title level={2} className="!mb-2">
