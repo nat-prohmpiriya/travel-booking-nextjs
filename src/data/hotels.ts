@@ -1,7 +1,8 @@
 // Mock hotel data for initial Firestore upload and local development
 // TypeScript interface from copilot-instructions.md
-import { Timestamp, GeoPoint } from 'firebase/firestore';
+import admin from 'firebase-admin';
 import { Hotel, HotelRoom } from '../types';
+import { randomUUID } from 'crypto';
 
 function randomAmenities() {
     const all = [
@@ -17,11 +18,11 @@ function randomRooms(): HotelRoom[] {
     const count = Math.floor(Math.random() * 3) + 2;
     for (let i = 0; i < count; i++) {
         rooms.push({
-            id: `room${Date.now()}${i}`,
+            id: `room-${randomUUID()}`,
             name: names[Math.floor(Math.random() * names.length)] + ' Room',
             description: 'Comfortable room with all amenities.',
             price: Math.floor(Math.random() * 3000) + 1000,
-            originalPrice: undefined,
+            originalPrice: Math.floor(Math.random() * 4000) + 1200,
             maxGuests: Math.floor(Math.random() * 3) + 2,
             bedType: beds[Math.floor(Math.random() * beds.length)],
             size: Math.floor(Math.random() * 40) + 20,
@@ -43,20 +44,22 @@ export const hotels: Hotel[] = Array.from({ length: 50 }, (_, i) => {
     const name = `${city} Grand Hotel ${i + 1}`;
     const rooms = randomRooms();
     const prices = rooms.map(r => r.price);
+    const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+    const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
     return {
-        id: `hotel${i + 1}`,
+        id: `hotel-${randomUUID()}`,
         name,
         description: `${name} is a top-rated hotel in ${city}, Thailand. Enjoy luxury and comfort with our premium amenities and services.`,
         location: `${city}, Thailand`,
         address: `${Math.floor(Math.random() * 200) + 1} Main Road, ${city}`,
         city,
         country: 'Thailand',
-        coordinates: new GeoPoint(13.7 + Math.random(), 100.5 + Math.random()),
-        rating: +(4 + Math.random()).toFixed(1),
+        coordinates: new admin.firestore.GeoPoint(13.75 + Math.random(), 100.5 + Math.random()),
+        rating: Math.round((4 + Math.random()) * 10) / 10,
         reviewCount: Math.floor(Math.random() * 500) + 10,
         priceRange: {
-            min: Math.min(...prices),
-            max: Math.max(...prices)
+            min: minPrice,
+            max: maxPrice
         },
         amenities: randomAmenities(),
         images: [
@@ -65,20 +68,23 @@ export const hotels: Hotel[] = Array.from({ length: 50 }, (_, i) => {
         ],
         rooms,
         contact: {
-            phone: `+66-2-000${1000 + i}`,
-            email: `info${i + 1}@${city.toLowerCase()}grandhotel.com`,
-            website: `https://www.${city.toLowerCase()}grandhotel.com`
+            phone: `+66-2-000-000${i % 10}`,
+            email: `info${i}@${city.toLowerCase().replace(/\s/g, '')}-grand.com`,
+            website: `https://www.${city.toLowerCase().replace(/\s/g, '')}-grand.com`
         },
         policies: {
             checkIn: '14:00',
             checkOut: '12:00',
-            cancellation: 'Free cancellation up to 24 hours before check-in.',
-            pets: Math.random() > 0.7,
-            smoking: Math.random() > 0.8
+            cancellation: 'Free cancellation within 24 hours',
+            pets: Boolean(Math.random() > 0.7),
+            smoking: Boolean(Math.random() > 0.5)
         },
         isActive: true,
-        isFeatured: Math.random() > 0.8,
-        createdAt: Timestamp.fromDate(new Date()),
-        updatedAt: Timestamp.fromDate(new Date())
+        isFeatured: Boolean(Math.random() > 0.8),
+        createdAt: admin.firestore.Timestamp.now(),
+        updatedAt: admin.firestore.Timestamp.now(),
+        tags: ['luxury', 'family', 'business'].filter(() => Math.random() > 0.5),
+        phone: `+66-2-000-000${i % 10}`,
+        email: `info${i}@${city.toLowerCase().replace(/\s/g, '')}-grand.com`
     };
 });
