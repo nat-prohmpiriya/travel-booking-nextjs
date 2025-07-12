@@ -31,31 +31,6 @@ src/
 ├── types/         # TypeScript types
 └── hooks/         # Custom hooks
 ```
-
-## Key Types
-```typescript
-interface Hotel {
-  id: string;
-  name: string;
-  location: string;
-  rating: number;
-  pricePerNight: number;
-  amenities: string[];
-  images: string[];
-}
-
-interface Booking {
-  id: string;
-  userId: string;
-  hotelId: string;
-  checkIn: Date;
-  checkOut: Date;
-  guests: { adults: number; children: number };
-  totalPrice: number;
-  status: 'pending' | 'confirmed' | 'cancelled';
-}
-```
-
 ## Zustand Pattern
 ```typescript
 interface StoreState {
