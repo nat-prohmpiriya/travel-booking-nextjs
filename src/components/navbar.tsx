@@ -37,6 +37,11 @@ export const Navbar: React.FC = () => {
             label: <Link href="/bookings">My Bookings</Link>,
         },
         {
+            key: 'diary',
+            icon: <BookOutlined />,
+            label: <Link href="/diary">My Travel Diary</Link>,
+        },
+        {
             key: 'notifications',
             icon: <BellOutlined />,
             label: <Link href="/notifications">My Notifications</Link>,
