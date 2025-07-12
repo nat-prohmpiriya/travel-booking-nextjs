@@ -4,7 +4,7 @@ import "./globals.css";
 
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import '@ant-design/v5-patch-for-react-19';
-
+import { Navbar } from '@/components/navbar';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,15 +18,24 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Travel Booking App",
-  description: "A travel booking application built with Next.js and Ant Design",
+  description: "Find your perfect stay with our travel booking platform",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
-export default function RootLayout({ children, }: Readonly<{ children: React.ReactNode; }>) {
+export default function RootLayout({
+  children
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en">
-      <body>
-        <AntdRegistry>{children}</AntdRegistry>
-
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <AntdRegistry>
+          <Navbar />
+          <main>{children}</main>
+        </AntdRegistry>
       </body>
     </html>
   );
