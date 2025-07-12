@@ -43,6 +43,7 @@ import { SearchParams as SearchParamsType } from '@/types';
 import { hotelService } from '@/services/hotelService';
 import { ReviewList } from '@/components/review-list';
 import { AddReview } from '@/components/add-review';
+import { HotelMap } from '@/components/hotel-map';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
@@ -163,7 +164,9 @@ export default function HotelDetail() {
                         description: firebaseHotel.description,
                         imageUrl: firebaseHotel.images[0] || '',
                         amenities: firebaseHotel.amenities,
-                        images: firebaseHotel.images
+                        images: firebaseHotel.images,
+                        coordinates: firebaseHotel.coordinates,
+                        address: firebaseHotel.address || firebaseHotel.location
                     };
                     setHotel(hotelData);
                 } else {
@@ -184,7 +187,12 @@ export default function HotelDetail() {
                             'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&h=600&fit=crop',
                             'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&h=600&fit=crop',
                             'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop'
-                        ]
+                        ],
+                        coordinates: {
+                            latitude: 13.7563,
+                            longitude: 100.5018
+                        },
+                        address: '123 Silom Road, Bang Rak, Bangkok 10500, Thailand'
                     });
                 }
             } catch (error) {
@@ -387,6 +395,16 @@ export default function HotelDetail() {
                                 ))}
                             </div>
                         </Card>
+
+                        {/* Hotel Map */}
+                        <HotelMap 
+                            hotel={{
+                                coordinates: hotel.coordinates,
+                                name: hotel.name,
+                                address: hotel.address || hotel.location
+                            }}
+                            className="mb-6"
+                        />
 
                         {/* Reviews */}
                         <Card 
