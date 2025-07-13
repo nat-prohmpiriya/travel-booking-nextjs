@@ -261,7 +261,7 @@ function BookingPageContent() {
 
             <div className="container mx-auto px-4 py-6">
                 {/* Steps */}
-                <Card className="mb-6">
+                <Card style={{ marginBottom: '16px' }}>
                     <Steps current={currentStep} items={steps} />
                 </Card>
 

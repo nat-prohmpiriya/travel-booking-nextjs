@@ -165,7 +165,7 @@ export const Navbar: React.FC = () => {
                 <div className="flex items-center gap-4 hidden lg:block">
                     {
                         mainMenuItems.map(item => (
-                            <Button disabled={!item.available} key={item.key} color="default" variant="link">
+                            <Button disabled={!item.available} key={item.key} color="default" variant="link" onClick={() => router.push(item.href)} className={`flex items-center ${pathname === item.href ? 'text-blue-600 font-semibold' : 'text-gray-700 hover:text-blue-600'}`}>
                                 <span className='flex items-center text-sm'>
                                     <span className='mr-2'>{item.icon}</span>
                                     {item.label}
@@ -198,7 +198,7 @@ export const Navbar: React.FC = () => {
                             placement="bottomRight"
                             arrow
                         >
-                            <div className="flex items-center cursor-pointer hover:bg-gray-50 px-2 py-1 rounded-lg transition-colors">
+                            <div className="flex items-center cursor-pointer px-2 py-1">
                                 <Avatar
                                     src={userProfile?.photoURL || undefined}
                                     icon={<UserOutlined />}

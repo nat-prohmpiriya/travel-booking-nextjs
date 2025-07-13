@@ -248,7 +248,7 @@ export default function HotelDetail() {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Breadcrumb */}
-            <div className="bg-white border-b">
+            <div className="bg-white">
                 <div className="container mx-auto px-4 py-4">
                     <Breadcrumb
                         items={[
@@ -272,7 +272,7 @@ export default function HotelDetail() {
 
             <div className="container mx-auto px-4 py-6">
                 {/* Header */}
-                <Card className="mb-6">
+                <Card style={{ marginBottom: '16px' }}>
                     <div className="flex justify-between items-start mb-4">
                         <div>
                             <Title level={2} className="!mb-2">{hotel.name}</Title>
@@ -318,7 +318,7 @@ export default function HotelDetail() {
                     {/* Main Content */}
                     <Col xs={24} lg={16}>
                         {/* Amenities */}
-                        <Card title="Amenities" className="mb-6">
+                        <Card title="Amenities" style={{ marginBottom: '16px' }}>
                             <Row gutter={[16, 16]}>
                                 {hotel.amenities?.map((amenity: string) => (
                                     <Col xs={12} sm={8} md={6} key={amenity}>
@@ -334,10 +334,10 @@ export default function HotelDetail() {
                         </Card>
 
                         {/* Available Rooms */}
-                        <Card title="Available Rooms" className="mb-6">
+                        <Card title="Available Rooms" style={{ marginBottom: '16px' }}>
                             <div className="space-y-4">
                                 {mockRooms.map((room) => (
-                                    <Card key={room.id} size="small" className="border">
+                                    <Card key={room.id} size="small" className="border" style={{ marginBottom: '16px' }}>
                                         <Row gutter={16}>
                                             <Col xs={24} sm={8}>
                                                 <img
@@ -403,11 +403,11 @@ export default function HotelDetail() {
                                 name: hotel.name,
                                 address: hotel.address || hotel.location
                             }}
-                            className="mb-6"
                         />
 
                         {/* Reviews */}
                         <Card
+                            style={{ marginBottom: '16px', marginTop: '24px' }}
                             title={
                                 <div className="flex items-center justify-between">
                                     <span>รีวิวจากผู้เข้าพัก</span>
@@ -504,9 +504,9 @@ export default function HotelDetail() {
                         <Card
                             key={room.id}
                             size="small"
-                            className={`cursor-pointer border-2 ${selectedRoom?.id === room.id ? 'border-blue-500' : 'border-gray-200'
-                                }`}
+                            className={`cursor-pointer border-2`}
                             onClick={() => setSelectedRoom(room)}
+                            style={{ marginBottom: '16px', borderColor: selectedRoom?.id === room.id ? '#1890ff' : '#d9d9d9' }}
                         >
                             <Row gutter={16}>
                                 <Col span={8}>
