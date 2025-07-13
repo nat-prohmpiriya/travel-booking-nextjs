@@ -382,7 +382,7 @@ export default function BookingsPage() {
                 </Card>
 
                 {/* Tabs */}
-                <Card>
+                <Card className='mt-4'>
                     <Tabs
                         activeKey={activeTab}
                         onChange={setActiveTab}

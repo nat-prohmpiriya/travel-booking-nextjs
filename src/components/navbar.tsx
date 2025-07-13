@@ -76,27 +76,27 @@ export const Navbar: React.FC = () => {
         {
             key: 'profile',
             icon: <UserOutlined />,
-            label: 'Profile',
+            label: <Link href="/account/profile">Profile</Link>,
         },
         {
             key: 'bookings',
             icon: <BookOutlined />,
-            label: <Link href="/bookings">My Bookings</Link>,
+            label: <Link href="/account/bookings">My Bookings</Link>,
         },
         {
             key: 'diary',
             icon: <BookOutlined />,
-            label: <Link href="/diary">My Travel Diary</Link>,
+            label: <Link href="/account/diary">My Travel Diary</Link>,
         },
         {
             key: 'notifications',
             icon: <BellOutlined />,
-            label: <Link href="/notifications">My Notifications</Link>,
+            label: <Link href="/account/notifications">My Notifications</Link>,
         },
         {
             key: 'settings',
             icon: <SettingOutlined />,
-            label: 'Settings',
+            label: <Link href="/account/settings">Settings</Link>,
         },
         {
             type: 'divider' as const,
@@ -125,10 +125,10 @@ export const Navbar: React.FC = () => {
     const handleUserMenuClick = async ({ key }: { key: string }) => {
         switch (key) {
             case 'profile':
-                router.push('/profile');
+                router.push('/account/profile');
                 break;
             case 'settings':
-                router.push('/settings');
+                router.push('/account/settings');
                 break;
             case 'logout':
                 try {

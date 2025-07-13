@@ -70,7 +70,8 @@ export default function ProfilePage() {
             gender: userProfile?.gender,
             nationality: userProfile?.nationality,
             address: userProfile?.address,
-            preferences: userProfile?.preferences
+            preferences: userProfile?.preferences,
+            displayName: userProfile?.displayName
         });
     }, [userProfile, form, router]);
 
@@ -201,7 +202,7 @@ export default function ProfilePage() {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Breadcrumb */}
-            <div className="bg-white border-b">
+            <div className="">
                 <div className="container mx-auto px-4 py-4">
                     <Breadcrumb
                         items={[
