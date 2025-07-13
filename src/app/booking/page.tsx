@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { 
-    Row, 
-    Col, 
-    Card, 
-    Typography, 
-    Button, 
-    Form, 
-    Input, 
-    Select, 
-    Divider, 
+import {
+    Row,
+    Col,
+    Card,
+    Typography,
+    Button,
+    Form,
+    Input,
+    Select,
+    Divider,
     Steps,
     Radio,
     Checkbox,
@@ -20,7 +20,7 @@ import {
     DatePicker,
     Breadcrumb
 } from 'antd';
-import { 
+import {
     UserOutlined,
     CreditCardOutlined,
     SafetyCertificateOutlined,
@@ -31,9 +31,10 @@ import {
 } from '@ant-design/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { bookingService, CreateBookingData } from '@/services/bookingService';
+import { bookingService } from '@/services/bookingService';
 import dayjs from 'dayjs';
 import Link from 'next/link';
+import { CreateBookingData } from '@/types/booking';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -83,8 +84,8 @@ interface PaymentInfo {
 export default function BookingPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { user } = useAuth();
-    
+    const { userProfile } = useAuth();
+
     const [currentStep, setCurrentStep] = useState<number>(0);
     const [bookingData, setBookingData] = useState<BookingData | null>(null);
     const [guestForm] = Form.useForm();
@@ -108,21 +109,23 @@ export default function BookingPage() {
     }, [searchParams, router]);
 
     useEffect(() => {
-        if (user && bookingData) {
+        if (userProfile && bookingData) {
             guestForm.setFieldsValue({
-                firstName: user.displayName?.split(' ')[0] || '',
-                lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
-                email: user.email || ''
+                firstName: userProfile.firstName || '',
+                lastName: userProfile.lastName || '',
+                email: userProfile.email || '',
+                phone: userProfile.phone || '',
+                country: userProfile.nationality || '',
             });
         }
-    }, [user, bookingData, guestForm]);
+    }, [userProfile, bookingData, guestForm]);
 
     const handleGuestInfoSubmit = (values: GuestInfo) => {
         setCurrentStep(1);
     };
 
     const handlePaymentSubmit = async (values: PaymentInfo) => {
-        if (!agreeTnC || !user || !bookingData) {
+        if (!agreeTnC || !userProfile || !bookingData) {
             message.error('Please agree to terms and conditions');
             return;
         }
@@ -131,7 +134,7 @@ export default function BookingPage() {
         try {
             // Get guest info from the first form
             const guestFormValues = guestForm.getFieldsValue();
-            
+
             const nights = dayjs(bookingData.checkOut).diff(dayjs(bookingData.checkIn), 'day');
             const subtotal = bookingData.room.price * bookingData.rooms * nights;
             const taxes = subtotal * 0.1;
@@ -140,7 +143,7 @@ export default function BookingPage() {
 
             // Create booking data (without payment processing)
             const createBookingData: CreateBookingData = {
-                userId: user.uid,
+                userId: userProfile.uid,
                 hotelId: bookingData.hotelId,
                 hotelName: bookingData.hotelName,
                 hotelLocation: bookingData.hotelName, // TODO: Get actual location
@@ -171,7 +174,7 @@ export default function BookingPage() {
 
             // Create booking in Firebase with pending payment status
             const booking = await bookingService.createBooking(createBookingData);
-            
+
             // Prepare payment data
             const paymentData = {
                 bookingId: booking.id,
@@ -184,7 +187,7 @@ export default function BookingPage() {
                 guests: bookingData.guests,
                 amount: total
             };
-            
+
             // Redirect to payment page
             router.push(`/booking/payment?data=${encodeURIComponent(JSON.stringify(paymentData))}`);
         } catch (error) {
@@ -356,8 +359,8 @@ export default function BookingPage() {
                                         name="specialRequests"
                                         label="Special Requests (Optional)"
                                     >
-                                        <TextArea 
-                                            rows={3} 
+                                        <TextArea
+                                            rows={3}
                                             placeholder="Any special requests or preferences (e.g., early check-in, room location, dietary requirements)"
                                         />
                                     </Form.Item>
@@ -403,8 +406,8 @@ export default function BookingPage() {
                                         label="Card Number"
                                         rules={[{ required: true, message: 'Please enter card number' }]}
                                     >
-                                        <Input 
-                                            placeholder="1234 5678 9012 3456" 
+                                        <Input
+                                            placeholder="1234 5678 9012 3456"
                                             prefix={<CreditCardOutlined />}
                                         />
                                     </Form.Item>
@@ -487,7 +490,7 @@ export default function BookingPage() {
                                     <Divider />
 
                                     <Form.Item>
-                                        <Checkbox 
+                                        <Checkbox
                                             checked={agreeTnC}
                                             onChange={(e) => setAgreeTnC(e.target.checked)}
                                         >
@@ -499,15 +502,15 @@ export default function BookingPage() {
                                     </Form.Item>
 
                                     <div className="flex justify-between">
-                                        <Button 
-                                            size="large" 
+                                        <Button
+                                            size="large"
                                             onClick={() => setCurrentStep(0)}
                                         >
                                             Back to Guest Info
                                         </Button>
-                                        <Button 
-                                            type="primary" 
-                                            htmlType="submit" 
+                                        <Button
+                                            type="primary"
+                                            htmlType="submit"
                                             size="large"
                                             loading={loading}
                                             disabled={!agreeTnC}
@@ -535,7 +538,7 @@ export default function BookingPage() {
                                     <div className="flex items-center">
                                         <CalendarOutlined className="mr-2 text-gray-500" />
                                         <Text>
-                                            {dayjs(bookingData.checkIn).format('DD MMM YYYY')} - 
+                                            {dayjs(bookingData.checkIn).format('DD MMM YYYY')} -
                                             {dayjs(bookingData.checkOut).format(' DD MMM YYYY')}
                                         </Text>
                                     </div>
@@ -547,7 +550,7 @@ export default function BookingPage() {
                                 <div className="flex items-center">
                                     <UserOutlined className="mr-2 text-gray-500" />
                                     <Text>
-                                        {bookingData.guests} {bookingData.guests === 1 ? 'guest' : 'guests'}, 
+                                        {bookingData.guests} {bookingData.guests === 1 ? 'guest' : 'guests'},
                                         {bookingData.rooms} {bookingData.rooms === 1 ? 'room' : 'rooms'}
                                     </Text>
                                 </div>
