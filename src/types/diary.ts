@@ -122,7 +122,9 @@ export interface DiaryShareSettings {
   shareCode?: string;
 }
 
-export const MOOD_COLORS: Record<DiaryEntry['mood'], string> = {
+export type MoodType = 'happy' | 'excited' | 'peaceful' | 'adventurous' | 'tired' | 'amazed';
+
+export const MOOD_COLORS: Record<MoodType, string> = {
   happy: '#ffd700',      // Gold
   excited: '#ff6b6b',    // Red
   peaceful: '#51cf66',   // Green
@@ -131,7 +133,7 @@ export const MOOD_COLORS: Record<DiaryEntry['mood'], string> = {
   amazed: '#7c4dff',     // Purple
 };
 
-export const MOOD_ICONS: Record<DiaryEntry['mood'], string> = {
+export const MOOD_ICONS: Record<MoodType, string> = {
   happy: '😊',
   excited: '🤩',
   peaceful: '😌',

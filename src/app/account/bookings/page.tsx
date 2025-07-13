@@ -19,13 +19,11 @@ import {
     message,
     Spin,
     Alert,
-    Breadcrumb,
-    Divider
+    Breadcrumb
 } from 'antd';
 import {
     CalendarOutlined,
     EnvironmentOutlined,
-    UserOutlined,
     SearchOutlined,
     EyeOutlined,
     EditOutlined,
@@ -78,7 +76,7 @@ export default function BookingsPage() {
     const [activeTab, setActiveTab] = useState<string>('all');
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [dateFilter, setDateFilter] = useState<any>(null);
+    const [dateFilter, setDateFilter] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
     const [cancelModalVisible, setCancelModalVisible] = useState<boolean>(false);
     const [reviewModalVisible, setReviewModalVisible] = useState<boolean>(false);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -210,7 +208,7 @@ export default function BookingsPage() {
         }
 
         // Filter by date range
-        if (dateFilter && dateFilter.length === 2) {
+        if (dateFilter && dateFilter.length === 2 && dateFilter[0] && dateFilter[1]) {
             filtered = filtered.filter(booking => {
                 const bookingDate = dayjs(booking.bookingDate);
                 return bookingDate.isAfter(dateFilter[0]) && bookingDate.isBefore(dateFilter[1]);
@@ -241,8 +239,12 @@ export default function BookingsPage() {
 
             message.success('Booking cancelled successfully');
             setCancelModalVisible(false);
-        } catch (error: any) {
-            message.error(error.message || 'Failed to cancel booking');
+        } catch (error) {
+            if (error instanceof Error) {
+                message.error(error.message || 'Failed to cancel booking');
+            } else {
+                message.error('Failed to cancel booking');
+            }
         }
     };
 
@@ -251,7 +253,12 @@ export default function BookingsPage() {
         setReviewModalVisible(true);
     };
 
-    const submitReview = async (values: any) => {
+    interface ReviewFormValues {
+        rating: number;
+        comment: string;
+    }
+
+    const submitReview = async (values: ReviewFormValues) => {
         try {
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -429,8 +436,8 @@ export default function BookingsPage() {
                     ) : (
                         <div className="space-y-4 mt-6">
                             {filteredBookings.map((booking) => {
-                                const nights = dayjs(booking.checkOut).diff(dayjs(booking.checkIn), 'day');
-                                const isUpcoming = booking.status === 'upcoming';
+                                // const nights = dayjs(booking.checkOut).diff(dayjs(booking.checkIn), 'day');
+                                // const isUpcoming = booking.status === 'upcoming';
                                 const isCompleted = booking.status === 'completed';
 
                                 return (

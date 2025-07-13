@@ -38,7 +38,7 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
     const [collapsed, setCollapsed] = useState<boolean>(false);
-    const { user, loading, logout } = useAuth();
+    const { user, loading, signOut } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -58,7 +58,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
     const handleLogout = async () => {
         try {
-            await logout();
+            await signOut();
             message.success('Logged out successfully');
             router.push('/');
         } catch (error) {

@@ -56,7 +56,8 @@ export const HotelMap: React.FC<HotelMapProps> = ({
   useEffect(() => {
     // Check if we're on client side and load Leaflet
     if (typeof window !== 'undefined') {
-      import('leaflet/dist/leaflet.css');
+      // Import CSS without type checking
+      import('leaflet/dist/leaflet.css' as any);
       import('leaflet').then((L) => {
         // Fix for default markers
         delete (L.Icon.Default.prototype as any)._getIconUrl;

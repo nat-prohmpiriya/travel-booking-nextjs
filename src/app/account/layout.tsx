@@ -7,7 +7,7 @@ interface AccountLayoutProps {
     children: React.ReactNode;
 }
 
-export const AccountLayout: React.FC<AccountLayoutProps> = ({ children }) => {
+export default function AccountLayout({ children }: AccountLayoutProps) {
 
     const router = useRouter();
     const listMenu = [
@@ -64,6 +64,4 @@ export const AccountLayout: React.FC<AccountLayoutProps> = ({ children }) => {
             </Col>
         </Row>
     );
-};
-
-export default AccountLayout;
+}

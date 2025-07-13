@@ -371,10 +371,10 @@ export default function HotelDetail() {
 
                                                 <div className="flex flex-wrap gap-1 mb-3">
                                                     {room.amenities.slice(0, 3).map((amenity) => (
-                                                        <Tag key={amenity} size="small">{amenity}</Tag>
+                                                        <Tag key={amenity}>{amenity}</Tag>
                                                     ))}
                                                     {room.amenities.length > 3 && (
-                                                        <Tag size="small">+{room.amenities.length - 3} more</Tag>
+                                                        <Tag>+{room.amenities.length - 3} more</Tag>
                                                     )}
                                                 </div>
 

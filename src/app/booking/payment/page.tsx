@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { Card, Typography, Spin, Alert, Breadcrumb } from 'antd';
 import { HomeOutlined, CreditCardOutlined } from '@ant-design/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -22,9 +22,10 @@ interface BookingPaymentData {
   rooms: number;
   guests: number;
   amount: number;
+  currency: string;
 }
 
-export default function PaymentPage() {
+function PaymentPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -65,6 +66,11 @@ export default function PaymentPage() {
         // Set default email if not provided
         if (!decodedData.guestEmail && user?.email) {
           decodedData.guestEmail = user.email;
+        }
+        
+        // Set default currency if not provided
+        if (!decodedData.currency) {
+          decodedData.currency = 'thb';
         }
         
         if (!decodedData.guestEmail) {
@@ -212,5 +218,13 @@ export default function PaymentPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<Spin size="large" />}>
+      <PaymentPageContent />
+    </Suspense>
   );
 }

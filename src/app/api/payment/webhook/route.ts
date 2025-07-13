@@ -3,12 +3,20 @@ import Stripe from 'stripe';
 import adminConfig from '@/utils/adminFirebase';
 import admin from 'firebase-admin';
 
-const firestore = admin.firestore();
+// Initialize Firebase Admin SDK if not already initialized
+try {
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(adminConfig as admin.ServiceAccount),
+      databaseURL: "https://travel-booking-867f5-default-rtdb.asia-southeast1.firebasedatabase.app"
+    });
+  }
+} catch (error) {
+  console.error('Firebase admin initialization error:', error);
+  // For build purposes, continue without admin initialization
+}
 
-admin.initializeApp({
-  credential: admin.credential.cert(adminConfig as admin.ServiceAccount),
-  databaseURL: "https://travel-booking-867f5-default-rtdb.asia-southeast1.firebasedatabase.app"
-});
+const firestore = admin.apps.length ? admin.firestore() : null;
 
 
 
@@ -24,7 +32,12 @@ async function updateBookingStatus(
   paymentMethod?: string
 ): Promise<void> {
   try {
-    const bookingRef = admin.firestore().collection('bookings').doc(bookingId);
+    if (!firestore) {
+      console.error('Firestore not initialized');
+      return;
+    }
+    
+    const bookingRef = firestore.collection('bookings').doc(bookingId);
 
     // Check if booking exists
     const bookingSnap = await bookingRef.get();

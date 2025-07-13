@@ -62,7 +62,7 @@ export const hotels: Hotel[] = Array.from({ length: 50 }, (_, i) => {
         address: `${Math.floor(Math.random() * 200) + 1} Main Road, ${city}`,
         city,
         country: 'Thailand',
-        coordinates: new admin.firestore.GeoPoint(13.75 + Math.random(), 100.5 + Math.random()),
+        coordinates: new admin.firestore.GeoPoint(13.75 + Math.random(), 100.5 + Math.random()) as any,
         rating: Math.round((4 + Math.random()) * 10) / 10,
         reviewCount: Math.floor(Math.random() * 500) + 10,
         priceRange: {
@@ -89,8 +89,8 @@ export const hotels: Hotel[] = Array.from({ length: 50 }, (_, i) => {
         },
         isActive: true,
         isFeatured: Boolean(Math.random() > 0.8),
-        createdAt: admin.firestore.Timestamp.now(),
-        updatedAt: admin.firestore.Timestamp.now(),
+        createdAt: admin.firestore.Timestamp.now() as any,
+        updatedAt: admin.firestore.Timestamp.now() as any,
         tags: ['luxury', 'family', 'business'].filter(() => Math.random() > 0.5),
         phone: `+66-2-000-000${i % 10}`,
         email: `info${i}@${city.toLowerCase().replace(/\s/g, '')}-grand.com`

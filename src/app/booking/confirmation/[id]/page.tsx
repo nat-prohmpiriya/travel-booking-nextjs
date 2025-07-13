@@ -48,7 +48,7 @@ interface BookingConfirmation {
     rooms: number;
     totalPrice: number;
     bookingDate: string;
-    status: 'confirmed' | 'pending' | 'cancelled';
+    status: 'pending' | 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled' | 'no-show';
     guestInfo: {
         name: string;
         email: string;

@@ -35,7 +35,8 @@ import {
 import { IoTrendingUpOutline } from "react-icons/io5";
 import { LuHotel } from "react-icons/lu";
 import { useRouter } from 'next/navigation';
-import { hotelService, Hotel } from '@/services/hotelService';
+import { hotelService } from '@/services/hotelService';
+import { Hotel } from '@/types';
 import Link from 'next/link';
 
 const { Title, Text } = Typography;

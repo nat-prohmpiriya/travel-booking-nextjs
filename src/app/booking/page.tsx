@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import {
     Row,
     Col,
@@ -81,7 +81,7 @@ interface PaymentInfo {
     };
 }
 
-export default function BookingPage() {
+function BookingPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { userProfile } = useAuth();
@@ -593,5 +593,13 @@ export default function BookingPage() {
                 </Row>
             </div>
         </div>
+    );
+}
+
+export default function BookingPage() {
+    return (
+        <Suspense fallback={<Spin size="large" />}>
+            <BookingPageContent />
+        </Suspense>
     );
 }

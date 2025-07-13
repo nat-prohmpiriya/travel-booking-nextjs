@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Form, Input, Button, message } from 'antd';
+import React, { useState, Suspense } from 'react';
+import { Form, Input, Button, message, Spin } from 'antd';
 import { EyeTwoTone, EyeInvisibleOutlined, LockOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthLayout } from '@/components/auth-layout';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -167,5 +167,13 @@ export default function ResetPasswordPage() {
                 </div>
             </div>
         </AuthLayout>
+    );
+}
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={<Spin size="large" />}>
+            <ResetPasswordContent />
+        </Suspense>
     );
 }

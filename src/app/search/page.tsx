@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import {
     Row,
     Col,
@@ -41,7 +41,7 @@ interface SearchFilters {
     hotelType: string;
 }
 
-export default function SearchResults() {
+function SearchResultsContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const {
@@ -384,5 +384,13 @@ export default function SearchResults() {
                 </Row>
             </div>
         </div>
+    );
+}
+
+export default function SearchResults() {
+    return (
+        <Suspense fallback={<Spin size="large" />}>
+            <SearchResultsContent />
+        </Suspense>
     );
 }

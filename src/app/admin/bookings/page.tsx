@@ -37,7 +37,8 @@ import {
     MailOutlined,
     PhoneOutlined
 } from '@ant-design/icons';
-import { bookingService, Booking } from '@/services/bookingService';
+import { bookingService } from '@/services/bookingService';
+import { Booking } from '@/types';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;

@@ -138,7 +138,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                                 )}
                             </div>
                             <div className="flex items-center space-x-2 mt-1">
-                                <Rate disabled value={review.rating} size="small" />
+                                <Rate disabled value={review.rating} />
                                 <Text type="secondary" className="text-sm">
                                     {formatDate(review.createdAt)}
                                 </Text>

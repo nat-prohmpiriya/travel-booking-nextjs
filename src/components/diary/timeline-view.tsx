@@ -212,7 +212,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
               </div>
               <div className="flex flex-wrap gap-1">
                 {entry.tags.map(tag => (
-                  <Tag key={tag} color="blue" size="small">
+                  <Tag key={tag} color="blue">
                     {tag}
                   </Tag>
                 ))}

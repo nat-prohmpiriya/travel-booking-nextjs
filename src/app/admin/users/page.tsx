@@ -77,7 +77,7 @@ export default function UsersManagement() {
     const loadUsers = async () => {
         try {
             setLoading(true);
-            const usersData = await userService.getAllUsers();
+            const { users: usersData } = await userService.getUsers();
 
             // Get booking data for each user
             const usersWithBookingData: UserTableData[] = await Promise.all(
@@ -160,8 +160,9 @@ export default function UsersManagement() {
 
     const handleStatusToggle = async (userId: string, currentStatus: boolean) => {
         try {
-            await userService.updateUserStatus(userId, !currentStatus);
-            message.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+            const newStatus = currentStatus ? 'disabled' : 'active';
+            await userService.updateUserStatus(userId, newStatus);
+            message.success(`User ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
             loadUsers();
         } catch (error) {
             console.error('Error updating user status:', error);
