@@ -29,7 +29,7 @@ function PaymentPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  
+
   const [bookingData, setBookingData] = useState<BookingPaymentData | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -62,17 +62,17 @@ function PaymentPageContent() {
         if (!decodedData.bookingId || !decodedData.amount) {
           throw new Error('Invalid booking data: missing bookingId or amount');
         }
-        
+
         // Set default email if not provided
         if (!decodedData.guestEmail && user?.email) {
           decodedData.guestEmail = user.email;
         }
-        
+
         // Set default currency if not provided
         if (!decodedData.currency) {
           decodedData.currency = 'thb';
         }
-        
+
         if (!decodedData.guestEmail) {
           throw new Error('Invalid booking data: missing guest email');
         }

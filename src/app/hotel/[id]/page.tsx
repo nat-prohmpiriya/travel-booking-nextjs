@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { 
-    Row, 
-    Col, 
-    Card, 
-    Typography, 
-    Button, 
-    Rate, 
-    Tag, 
-    Divider, 
-    Carousel, 
+import {
+    Row,
+    Col,
+    Card,
+    Typography,
+    Button,
+    Rate,
+    Tag,
+    Divider,
+    Carousel,
     Space,
     Avatar,
     Progress,
@@ -22,8 +22,8 @@ import {
     Spin,
     Breadcrumb
 } from 'antd';
-import { 
-    EnvironmentOutlined, 
+import {
+    EnvironmentOutlined,
     StarOutlined,
     WifiOutlined,
     CarOutlined,
@@ -79,7 +79,7 @@ export default function HotelDetail() {
     const router = useRouter();
     const params = useParams();
     const hotelId = params.id as string;
-    
+
     const { user } = useAuth();
     const { searchResults, isLoading } = useSearchStore();
     const [hotel, setHotel] = useState<any>(null);
@@ -382,7 +382,7 @@ export default function HotelDetail() {
                                                     <Text className="text-green-600">
                                                         {room.available} rooms left
                                                     </Text>
-                                                    <Button 
+                                                    <Button
                                                         type="primary"
                                                         onClick={() => handleBookRoom(room)}
                                                     >
@@ -397,7 +397,7 @@ export default function HotelDetail() {
                         </Card>
 
                         {/* Hotel Map */}
-                        <HotelMap 
+                        <HotelMap
                             hotel={{
                                 coordinates: hotel.coordinates,
                                 name: hotel.name,
@@ -407,7 +407,7 @@ export default function HotelDetail() {
                         />
 
                         {/* Reviews */}
-                        <Card 
+                        <Card
                             title={
                                 <div className="flex items-center justify-between">
                                     <span>รีวิวจากผู้เข้าพัก</span>
@@ -431,7 +431,7 @@ export default function HotelDetail() {
                     <Col xs={24} lg={8}>
                         <Card className="sticky top-4">
                             <Title level={4} className="text-center mb-4">Book Your Stay</Title>
-                            
+
                             <div className="mb-4">
                                 <Text className="block mb-2">Check-in / Check-out</Text>
                                 <RangePicker
@@ -465,9 +465,9 @@ export default function HotelDetail() {
                                 </Col>
                             </Row>
 
-                            <Button 
-                                type="primary" 
-                                size="large" 
+                            <Button
+                                type="primary"
+                                size="large"
                                 block
                                 onClick={() => setBookingModalVisible(true)}
                             >
@@ -501,12 +501,11 @@ export default function HotelDetail() {
             >
                 <div className="space-y-4">
                     {mockRooms.map((room) => (
-                        <Card 
-                            key={room.id} 
-                            size="small" 
-                            className={`cursor-pointer border-2 ${
-                                selectedRoom?.id === room.id ? 'border-blue-500' : 'border-gray-200'
-                            }`}
+                        <Card
+                            key={room.id}
+                            size="small"
+                            className={`cursor-pointer border-2 ${selectedRoom?.id === room.id ? 'border-blue-500' : 'border-gray-200'
+                                }`}
                             onClick={() => setSelectedRoom(room)}
                         >
                             <Row gutter={16}>
@@ -542,8 +541,8 @@ export default function HotelDetail() {
                     <Button size="large" onClick={() => setBookingModalVisible(false)}>
                         Cancel
                     </Button>
-                    <Button 
-                        type="primary" 
+                    <Button
+                        type="primary"
                         size="large"
                         disabled={!selectedRoom || !dateRange}
                         onClick={handleBookingConfirm}

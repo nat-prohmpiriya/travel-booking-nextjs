@@ -36,7 +36,7 @@ async function updateBookingStatus(
       console.error('Firestore not initialized');
       return;
     }
-    
+
     const bookingRef = firestore.collection('bookings').doc(bookingId);
 
     // Check if booking exists

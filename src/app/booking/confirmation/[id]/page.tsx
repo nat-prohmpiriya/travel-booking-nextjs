@@ -1,21 +1,21 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { 
-    Result, 
-    Card, 
-    Typography, 
-    Button, 
-    Row, 
-    Col, 
-    Divider, 
+import {
+    Result,
+    Card,
+    Typography,
+    Button,
+    Row,
+    Col,
+    Divider,
     Space,
     QRCode,
     Tag,
     Alert,
     Steps
 } from 'antd';
-import { 
+import {
     CheckCircleOutlined,
     CalendarOutlined,
     EnvironmentOutlined,
@@ -63,7 +63,7 @@ export default function BookingConfirmation() {
     const params = useParams();
     const { user } = useAuth();
     const bookingId = params.id as string;
-    
+
     const [booking, setBooking] = useState<BookingConfirmation | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -71,7 +71,7 @@ export default function BookingConfirmation() {
         const loadBookingData = async () => {
             try {
                 const firebaseBooking = await bookingService.getBooking(bookingId);
-                
+
                 if (firebaseBooking) {
                     // Convert Firebase booking to our interface
                     const bookingConfirmation: BookingConfirmation = {
@@ -96,7 +96,7 @@ export default function BookingConfirmation() {
                         confirmationCode: firebaseBooking.confirmationCode,
                         specialRequests: firebaseBooking.guestInfo.specialRequests
                     };
-                    
+
                     setBooking(bookingConfirmation);
                 } else {
                     // Fallback to mock data
@@ -122,7 +122,7 @@ export default function BookingConfirmation() {
                         confirmationCode: `${bookingId}-CONF`,
                         specialRequests: 'Early check-in requested'
                     };
-                    
+
                     setBooking(mockBooking);
                 }
             } catch (error) {
@@ -219,7 +219,7 @@ export default function BookingConfirmation() {
                                             <div className="flex items-center mt-1">
                                                 <UserOutlined className="mr-2 text-gray-500" />
                                                 <Text className="text-gray-600">
-                                                    {booking.guests} {booking.guests === 1 ? 'guest' : 'guests'}, 
+                                                    {booking.guests} {booking.guests === 1 ? 'guest' : 'guests'},
                                                     {booking.rooms} {booking.rooms === 1 ? 'room' : 'rooms'}
                                                 </Text>
                                             </div>
@@ -230,7 +230,7 @@ export default function BookingConfirmation() {
                                             <div className="flex items-center mb-1">
                                                 <CalendarOutlined className="mr-2 text-gray-500" />
                                                 <Text>
-                                                    {dayjs(booking.checkIn).format('ddd, DD MMM YYYY')} - 
+                                                    {dayjs(booking.checkIn).format('ddd, DD MMM YYYY')} -
                                                     {dayjs(booking.checkOut).format(' ddd, DD MMM YYYY')}
                                                 </Text>
                                             </div>
@@ -366,9 +366,9 @@ export default function BookingConfirmation() {
                                     <Text>Service Fee</Text>
                                     <Text>฿{(booking.totalPrice * 0.05).toLocaleString()}</Text>
                                 </div>
-                                
+
                                 <Divider />
-                                
+
                                 <div className="flex justify-between items-center">
                                     <Title level={4} className="!mb-0">Total Paid</Title>
                                     <Title level={4} className="!mb-0 text-green-600">
@@ -380,16 +380,16 @@ export default function BookingConfirmation() {
                             <Divider />
 
                             <Space direction="vertical" className="w-full">
-                                <Button 
-                                    type="primary" 
-                                    icon={<DownloadOutlined />} 
+                                <Button
+                                    type="primary"
+                                    icon={<DownloadOutlined />}
                                     block
                                     onClick={handleDownloadConfirmation}
                                 >
                                     Download Confirmation
                                 </Button>
-                                <Button 
-                                    icon={<ShareAltOutlined />} 
+                                <Button
+                                    icon={<ShareAltOutlined />}
                                     block
                                     onClick={handleShareBooking}
                                 >
@@ -400,7 +400,7 @@ export default function BookingConfirmation() {
 
                         {/* QR Code */}
                         <Card title="Quick Access" className="text-center">
-                            <QRCode 
+                            <QRCode
                                 value={`${window.location.origin}/booking/confirmation/${bookingId}`}
                                 size={150}
                                 className="mb-4"

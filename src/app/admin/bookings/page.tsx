@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { 
-    Table, 
-    Button, 
-    Input, 
-    Space, 
-    Tag, 
-    Avatar, 
+import {
+    Table,
+    Button,
+    Input,
+    Space,
+    Tag,
+    Avatar,
     Modal,
     message,
     Dropdown,
@@ -242,8 +242,8 @@ export default function BookingsManagement() {
             dataIndex: 'status',
             key: 'status',
             render: (status: string) => (
-                <Tag 
-                    color={getStatusColor(status)} 
+                <Tag
+                    color={getStatusColor(status)}
                     icon={getStatusIcon(status)}
                 >
                     {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -325,7 +325,7 @@ export default function BookingsManagement() {
 
     const handleStatusFormSubmit = async (values: any) => {
         if (!selectedBooking) return;
-        
+
         try {
             await handleStatusChange(selectedBooking.id, values.status);
             setStatusModalVisible(false);
@@ -449,7 +449,7 @@ export default function BookingsManagement() {
                         pageSize: 10,
                         showSizeChanger: true,
                         showQuickJumper: true,
-                        showTotal: (total, range) => 
+                        showTotal: (total, range) =>
                             `${range[0]}-${range[1]} of ${total} bookings`
                     }}
                     scroll={{ x: 1400 }}

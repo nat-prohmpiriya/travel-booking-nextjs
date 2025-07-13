@@ -25,7 +25,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
 }) => {
     const { user } = useAuth();
     const { markHelpful, reportReview, addResponse, verifyReview } = useReviewStore();
-    
+
     const [showReportModal, setShowReportModal] = useState<boolean>(false);
     const [showResponseModal, setShowResponseModal] = useState<boolean>(false);
     const [reportReason, setReportReason] = useState<string>('');
@@ -123,8 +123,8 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                 {/* Header */}
                 <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-3">
-                        <Avatar 
-                            src={review.userAvatar} 
+                        <Avatar
+                            src={review.userAvatar}
                             size={48}
                             className="bg-blue-500"
                         >
@@ -176,7 +176,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                     {review.title && (
                         <Text strong className="text-base block">{review.title}</Text>
                     )}
-                    
+
                     <Paragraph className="mb-0">
                         {review.comment}
                     </Paragraph>
@@ -247,7 +247,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                         >
                             เป็นประโยชน์ ({review.helpfulCount})
                         </Button>
-                        
+
                         {canRespond && (
                             <Button
                                 type="text"
@@ -284,7 +284,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                                 <div className="flex-1">
                                     <div className="flex items-center space-x-2">
                                         <Text strong className="text-sm">{response.userName}</Text>
-                                        <Tag 
+                                        <Tag
                                             color={response.userRole === 'hotel' ? 'green' : response.userRole === 'admin' ? 'red' : 'default'}
                                             className="text-xs"
                                         >

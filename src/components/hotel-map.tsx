@@ -43,10 +43,10 @@ interface HotelMapProps {
   className?: string;
 }
 
-export const HotelMap: React.FC<HotelMapProps> = ({ 
-  hotel, 
+export const HotelMap: React.FC<HotelMapProps> = ({
+  hotel,
   height = '400px',
-  className = '' 
+  className = ''
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +98,7 @@ export const HotelMap: React.FC<HotelMapProps> = ({
 
   // Validate coordinates
   if (typeof latitude !== 'number' || typeof longitude !== 'number' ||
-      latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
     return (
       <Card className={`w-full ${className}`}>
         <Alert
@@ -148,7 +148,7 @@ export const HotelMap: React.FC<HotelMapProps> = ({
   }
 
   return (
-    <Card 
+    <Card
       className={`w-full ${className}`}
       title={
         <div className="flex items-center gap-2">
@@ -158,16 +158,16 @@ export const HotelMap: React.FC<HotelMapProps> = ({
       }
       extra={
         <Space size="small" className="hidden sm:flex">
-          <Button 
-            type="default" 
+          <Button
+            type="default"
             icon={<EnvironmentOutlined />}
             onClick={handleOpenGoogleMaps}
             size="small"
           >
             เปิด Google Maps
           </Button>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<CompassOutlined />}
             onClick={handleGetDirections}
             size="small"
@@ -179,7 +179,7 @@ export const HotelMap: React.FC<HotelMapProps> = ({
     >
       <div className="space-y-4">
         {/* Map Container */}
-        <div 
+        <div
           className="w-full rounded-lg overflow-hidden border border-gray-200"
           style={{ height }}
         >
@@ -201,8 +201,8 @@ export const HotelMap: React.FC<HotelMapProps> = ({
                     <h3 className="font-semibold text-lg mb-1">{hotel.name}</h3>
                     <p className="text-gray-600 text-sm mb-3">{hotel.address}</p>
                     <Space direction="vertical" size="small" className="w-full">
-                      <Button 
-                        type="link" 
+                      <Button
+                        type="link"
                         icon={<EnvironmentOutlined />}
                         onClick={handleOpenGoogleMaps}
                         size="small"
@@ -210,8 +210,8 @@ export const HotelMap: React.FC<HotelMapProps> = ({
                       >
                         เปิด Google Maps
                       </Button>
-                      <Button 
-                        type="link" 
+                      <Button
+                        type="link"
                         icon={<CompassOutlined />}
                         onClick={handleGetDirections}
                         size="small"
@@ -229,16 +229,16 @@ export const HotelMap: React.FC<HotelMapProps> = ({
 
         {/* Mobile Action Buttons */}
         <div className="flex sm:hidden gap-2">
-          <Button 
-            type="default" 
+          <Button
+            type="default"
             icon={<EnvironmentOutlined />}
             onClick={handleOpenGoogleMaps}
             block
           >
             เปิด Google Maps
           </Button>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<CompassOutlined />}
             onClick={handleGetDirections}
             block

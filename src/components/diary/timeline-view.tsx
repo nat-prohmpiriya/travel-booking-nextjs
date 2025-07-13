@@ -49,7 +49,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
 }) => {
   const { user } = useAuth();
   const router = useRouter();
-  
+
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,12 +62,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       const entriesData = await diaryService.getDiaryEntries(diaryId, {
         orderBy: 'date',
         orderDirection: 'asc'
       });
-      
+
       setEntries(entriesData);
     } catch (err: any) {
       console.error('Error loading entries:', err);
@@ -241,7 +241,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
       const entryDate = dayjs(entry.date.toDate());
       const isToday = entryDate.isSame(dayjs(), 'day');
       const isYesterday = entryDate.isSame(dayjs().subtract(1, 'day'), 'day');
-      
+
       let dateLabel = entryDate.format('MMMM DD, YYYY');
       if (isToday) {
         dateLabel = 'Today';
@@ -322,11 +322,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
             Travel Timeline
           </Title>
           <Text className="text-gray-600">
-            {entries.length} entr{entries.length !== 1 ? 'ies' : 'y'} • 
+            {entries.length} entr{entries.length !== 1 ? 'ies' : 'y'} •
             {entries.reduce((total, entry) => total + (entry.photos?.length || 0), 0)} photos
           </Text>
         </div>
-        
+
         {isOwner && (
           <Button
             type="primary"
