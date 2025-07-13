@@ -48,7 +48,7 @@ export const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
   };
 
   const handleViewBookings = (): void => {
-    router.push('/bookings');
+    router.push('/account/bookings');
   };
 
   return (

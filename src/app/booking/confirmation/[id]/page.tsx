@@ -192,7 +192,7 @@ export default function BookingConfirmation() {
                         <Button type="primary" key="home" onClick={() => router.push('/')}>
                             <HomeOutlined /> Back to Home
                         </Button>,
-                        <Button key="bookings" onClick={() => router.push('/bookings')}>
+                        <Button key="bookings" onClick={() => router.push('/account/bookings')}>
                             <BookOutlined /> View My Bookings
                         </Button>
                     ]}
