@@ -47,7 +47,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(false);
 
     // Create default user profile
     const createDefaultProfile = async (user: User, additionalData: CreateUserData = { firstName: '', lastName: '' }): Promise<UserProfile> => {

@@ -4,13 +4,14 @@ import React from 'react';
 import { Col, Row } from 'antd';
 import { UserOutlined, BookOutlined, BellOutlined, SettingOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+
 interface AccountLayoutProps {
     children: React.ReactNode;
 }
 
 export default function AccountLayout({ children }: AccountLayoutProps) {
-
     const router = useRouter();
+
     const listMenu = [
         {
             key: 'profile',
@@ -44,28 +45,62 @@ export default function AccountLayout({ children }: AccountLayoutProps) {
     };
 
     return (
-        <Row className="min-h-screen bg-gray-50 p-4" justify={'center'} gutter={[16, 16]}>
-            <Col sm={24} md={20} lg={20} className="">
-                <Row>
-                    <Col xs={0} sm={4} md={4} lg={6}>
+        <Row
+            justify="center"
+            gutter={[16, 16]}
+            style={{
+                minHeight: '100vh',
+                backgroundColor: '#f5f5f5',
+                padding: '16px'
+            }}
+        >
+            <Col sm={24} md={20} lg={20}>
+                <Row gutter={[16, 16]}>
+                    <Col xs={0} sm={0} md={6} lg={6}>
                         {/* Sidebar Menu */}
-                        <div className='bg-white shadow-lg rounded-lg overflow-y-auto'>
+                        <div style={{
+                            backgroundColor: 'white',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                            borderRadius: '8px',
+                            overflow: 'hidden'
+                        }}>
                             {listMenu.map((item) => (
                                 <div
                                     key={item.key}
-                                    className="p-4 hover:bg-gray-100 rounded cursor-pointer"
+                                    style={{
+                                        padding: '16px',
+                                        cursor: 'pointer',
+                                        borderBottom: '1px solid #f0f0f0'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#f5f5f5';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'transparent';
+                                    }}
                                     onClick={() => handlerClick(item.href)}
                                 >
-                                    {item.icon}
-                                    <span className='ml-2'>{item.key}</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        {item.icon}
+                                        <span style={{ fontSize: '14px', fontWeight: 500 }}>
+                                            {item.key}
+                                        </span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </Col>
 
                     {/* Main content */}
-                    <Col xs={24} sm={20} md={16} lg={18} className="p-4 w-3/4">
-                        {children}
+                    <Col xs={24} sm={18} md={18} lg={18}>
+                        <div style={{
+                            backgroundColor: 'white',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                            borderRadius: '8px',
+                            padding: '24px'
+                        }}>
+                            {children}
+                        </div>
                     </Col>
                 </Row>
             </Col>
