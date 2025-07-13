@@ -39,7 +39,7 @@ import {
 } from '@ant-design/icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { bookingService, BookingFilters } from '@/services/bookingService';
+import { bookingService, } from '@/services/bookingService';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 
