@@ -3,7 +3,10 @@
     "allow": [
       "Bash(find:*)",
       "Bash(npm install:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(rm:*)",
+      "Bash(npm run dev:*)",
+      "WebFetch(domain:localhost)"
     ],
     "deny": []
   }
