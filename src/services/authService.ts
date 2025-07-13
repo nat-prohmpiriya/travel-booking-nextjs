@@ -9,31 +9,31 @@ import {
 } from 'firebase/auth';
 import { firebaseAuth } from '@/utils/firebaseInit';
 import { userService } from './userService';
-import { SignUpData, SignInData, CreateUserProfileData } from '@/types';
+import { CreateUserProfileData } from '@/types';
 
 
 const googleProvider = new GoogleAuthProvider();
 
 export const authService = {
     // Email/Password Sign Up
-    async signUp(data: SignUpData): Promise<User> {
+    async signUpWithEmail(email: string, password: string, name: string): Promise<User> {
         const { user } = await createUserWithEmailAndPassword(
             firebaseAuth,
-            data.email,
-            data.password
+            email,
+            password
         );
 
         // Update user profile with name
         await updateProfile(user, {
-            displayName: data.name
+            displayName: name
         });
 
         // Create user profile in Firestore
         const userProfileData: CreateUserProfileData = {
             uid: user.uid,
-            email: data.email,
-            firstName: data.name.split(' ')[0] || '',
-            lastName: data.name.split(' ').slice(1).join(' ') || '',
+            email: email,
+            firstName: name.split(' ')[0] || '',
+            lastName: name.split(' ').slice(1).join(' ') || '',
             photoURL: user.photoURL || undefined
         };
 
@@ -43,11 +43,11 @@ export const authService = {
     },
 
     // Email/Password Sign In
-    async signIn(data: SignInData): Promise<User> {
+    async signInWithEmail(email: string, password: string): Promise<User> {
         const { user } = await signInWithEmailAndPassword(
             firebaseAuth,
-            data.email,
-            data.password
+            email,
+            password
         );
         return user;
     },

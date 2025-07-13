@@ -3,7 +3,7 @@
 import React from 'react';
 import { useParams } from 'next/navigation';
 import { EntryForm } from '@/components/diary/entry-form';
-import { withUserAuth } from '@/components/auth/route-guard';
+;
 
 function NewEntryPage() {
   const params = useParams();
@@ -18,4 +18,4 @@ function NewEntryPage() {
   );
 }
 
-export default withUserAuth(NewEntryPage);
+export default NewEntryPage

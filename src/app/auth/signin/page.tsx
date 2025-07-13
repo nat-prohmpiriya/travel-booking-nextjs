@@ -14,10 +14,10 @@ export default function SignInPage() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const handleEmailLogin = async (values: SignInData) => {
+    const handleEmailLogin = async (values: { email: string; password: string }) => {
         setLoading(true);
         try {
-            await authService.signIn(values);
+            await authService.signInWithEmail(values.email, values.password);
             message.success('Login successful!');
             router.push('/');
         } catch (error: any) {

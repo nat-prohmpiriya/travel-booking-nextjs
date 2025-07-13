@@ -7,14 +7,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { diaryService } from '@/services/diaryService';
 import { TravelDiary } from '@/types/diary';
 import { DiaryForm } from '@/components/diary/diary-form';
-import { withUserAuth } from '@/components/auth/route-guard';
+;
 
 function EditDiaryPage() {
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
   const diaryId = params.id as string;
-  
+
   const [diary, setDiary] = useState<TravelDiary | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -25,9 +25,9 @@ function EditDiaryPage() {
   const loadDiary = async (): Promise<void> => {
     try {
       setLoading(true);
-      
+
       const diaryData = await diaryService.getDiary(diaryId);
-      
+
       if (!diaryData) {
         message.error('Diary not found');
         router.push('/diary');
@@ -80,4 +80,4 @@ function EditDiaryPage() {
   );
 }
 
-export default withUserAuth(EditDiaryPage);
+export default EditDiaryPage

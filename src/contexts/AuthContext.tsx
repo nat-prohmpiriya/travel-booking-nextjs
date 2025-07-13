@@ -11,12 +11,23 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { firebaseAuth, firebaseDb } from '@/utils/firebaseInit';
-import { UserRole, AuthContextType } from '@/types/auth';
+import { UserRole } from '@/types/user';
 import { UserProfile } from '@/types/user';
-import { getUserRole, getUserPermissions, setAuthCookies, clearAuthCookies } from '@/utils/auth';
 import { Timestamp } from 'firebase/firestore';
 
 // Use AuthContextType from types/auth.ts
+
+export interface AuthContextType {
+    user: User | null;
+    userProfile: UserProfile | null;
+    loading: boolean;
+    error: string | null;
+    signIn: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string, userData?: any) => Promise<void>;
+    signOut: () => Promise<void>;
+    refreshUser: () => Promise<void>;
+    logout: () => Promise<void>;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -39,11 +50,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Convert Firebase User to UserProfile
     const convertToUserProfile = async (firebaseUser: User): Promise<UserProfile> => {
-        const role = await getUserRole(firebaseUser.uid);
-        const permissions = await getUserPermissions(firebaseUser.uid);
         const validRoles = ['admin', 'user', 'partner'] as const;
         type ValidRole = typeof validRoles[number];
-        const safeRole: ValidRole = validRoles.includes(role as ValidRole) ? (role as ValidRole) : 'user';
+
         const createdAt = firebaseUser.metadata.creationTime
             ? Timestamp.fromDate(new Date(firebaseUser.metadata.creationTime))
             : Timestamp.fromDate(new Date());
@@ -57,9 +66,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             lastName: '',
             name: firebaseUser.displayName || '',
             photoURL: firebaseUser.photoURL || undefined,
-            role: safeRole,
             emailVerified: firebaseUser.emailVerified,
-            permissions,
+            role: 'user', // default role
+            permissions: [], // default permissions
             createdAt,
             lastLoginAt,
             updatedAt: Timestamp.fromDate(new Date()),
@@ -89,16 +98,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     const profile = await convertToUserProfile(firebaseUser);
                     setUserProfile(profile);
                     const token = await firebaseUser.getIdToken();
-                    setAuthCookies(profile, token);
                 } else {
                     setUserProfile(null);
-                    clearAuthCookies();
                 }
             } catch (err: any) {
                 console.error('Auth state change error:', err);
                 setError(err.message || 'Authentication error occurred');
                 setUserProfile(null);
-                clearAuthCookies();
             } finally {
                 setLoading(false);
             }
@@ -178,7 +184,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setLoading(true);
             setError(null);
             await firebaseSignOut(firebaseAuth);
-            clearAuthCookies();
         } catch (err: any) {
             console.error('Sign out error:', err);
             setError(err.message || 'Sign out failed');
@@ -195,7 +200,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const profile = await convertToUserProfile(firebaseAuth.currentUser);
             setUserProfile(profile);
             const token = await firebaseAuth.currentUser.getIdToken(true);
-            setAuthCookies(profile, token);
         } catch (err: any) {
             console.error('Refresh user error:', err);
             setError(err.message || 'Failed to refresh user data');
@@ -216,17 +220,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return userProfile.permissions.includes(permission);
     };
 
+    const logout = async (): Promise<void> => {
+        try {
+            setLoading(true);
+            setError(null);
+            await firebaseSignOut(firebaseAuth);
+            setUserProfile(null);
+            // Optionally clear any auth-related cookies or local storage       
+        } catch (err: any) {
+            console.error('Logout error:', err);
+            setError(err.message || 'Logout failed');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const contextValue: AuthContextType = {
+        user: firebaseAuth.currentUser,
         userProfile,
         loading,
         error,
-        isAuthenticated: !!userProfile,
-        hasRole,
-        hasPermission,
         signIn,
         signUp,
         signOut,
         refreshUser,
+        logout,
     };
 
     return (

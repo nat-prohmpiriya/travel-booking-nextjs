@@ -32,7 +32,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { diaryService } from '@/services/diaryService';
 import { TravelDiary } from '@/types/diary';
 import { TimelineView } from '@/components/diary/timeline-view';
-import { withUserAuth } from '@/components/auth/route-guard';
+;
 import dayjs from 'dayjs';
 import Link from 'next/link';
 
@@ -43,7 +43,7 @@ function DiaryDetailPage() {
   const router = useRouter();
   const params = useParams();
   const diaryId = params.id as string;
-  
+
   const [diary, setDiary] = useState<TravelDiary | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,9 +56,9 @@ function DiaryDetailPage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const diaryData = await diaryService.getDiary(diaryId);
-      
+
       if (!diaryData) {
         setError('Diary not found');
         return;
@@ -151,8 +151,7 @@ function DiaryDetailPage() {
         key: 'delete',
         label: 'Delete Diary',
         icon: <DeleteOutlined />,
-        onClick: handleDeleteDiary,
-        danger: true
+        onClick: handleDeleteDiary
       }
     );
   }
@@ -220,7 +219,7 @@ function DiaryDetailPage() {
                         <span>{daysDuration} days</span>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       {diary.isPublic && (
                         <Tag color="green">Public</Tag>
@@ -305,4 +304,4 @@ function DiaryDetailPage() {
   );
 }
 
-export default withUserAuth(DiaryDetailPage);
+export default DiaryDetailPage

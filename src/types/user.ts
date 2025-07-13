@@ -1,5 +1,7 @@
 import { Timestamp } from 'firebase/firestore';
 
+export type UserRole = 'admin' | 'partner' | 'user';
+
 // =================== USER INTERFACES ===================
 export interface UserProfile {
     uid: string;
@@ -34,7 +36,7 @@ export interface UserProfile {
     createdAt: Timestamp;
     updatedAt: Timestamp;
     isActive?: boolean;
-    role: 'admin' | 'partner' | 'user'; // required
+    role: UserRole; // required
     permissions?: string[];
     lastLoginAt?: Timestamp;
 }
@@ -64,21 +66,3 @@ export interface UpdateUserProfileData {
     preferences?: Partial<UserProfile['preferences']>;
 }
 
-// =================== AUTH INTERFACES ===================
-export interface SignUpData {
-    name: string;
-    email: string;
-    password: string;
-}
-
-export interface SignInData {
-    email: string;
-    password: string;
-}
-
-export interface User {
-    id: string;
-    email: string;
-    name: string;
-    avatar?: string;
-}

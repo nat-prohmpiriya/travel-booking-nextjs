@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { DiaryForm } from '@/components/diary/diary-form';
-import { withUserAuth } from '@/components/auth/route-guard';
+;
 
 function NewDiaryPage() {
   return (
@@ -14,4 +14,4 @@ function NewDiaryPage() {
   );
 }
 
-export default withUserAuth(NewDiaryPage);
+export default NewDiaryPage
