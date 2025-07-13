@@ -11,7 +11,8 @@ import {
     startAfter,
     where,
     writeBatch,
-    Timestamp
+    Timestamp,
+    setDoc
 } from 'firebase/firestore';
 import { deleteUser, updatePassword } from 'firebase/auth';
 import { firebaseDb as db } from '@/utils/firebaseInit';
@@ -397,7 +398,7 @@ class AdminUserService {
     private async logActivity(uid: string, action: string, details?: any): Promise<void> {
         try {
             const activityRef = doc(collection(db, this.ACTIVITY_COLLECTION));
-            await updateDoc(activityRef, {
+            await setDoc(activityRef, {
                 uid,
                 action,
                 details,
@@ -447,3 +448,4 @@ class AdminUserService {
 
 // Export singleton instance
 export const adminUserService = new AdminUserService();
+export const userService = adminUserService;
