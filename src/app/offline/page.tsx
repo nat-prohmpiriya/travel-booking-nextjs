@@ -6,9 +6,7 @@ import { DisconnectOutlined, HomeOutlined, ReloadOutlined } from '@ant-design/ic
 
 const { Title, Paragraph } = Typography;
 
-interface OfflinePageProps {}
-
-const OfflinePage: React.FC<OfflinePageProps> = () => {
+const OfflinePage: React.FC = () => {
   const handleRetry = (): void => {
     if (typeof window !== 'undefined') {
       window.location.reload();
@@ -24,7 +22,8 @@ const OfflinePage: React.FC<OfflinePageProps> = () => {
   const handleCheckConnection = (): void => {
     if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
       navigator.serviceWorker.ready.then((registration: ServiceWorkerRegistration) => {
-        return registration.sync.register('connectivity-check');
+        // Type assertion to access sync property
+        return (registration as any).sync.register('connectivity-check');
       }).catch((error: Error) => {
         console.error('Background sync registration failed:', error);
       });
