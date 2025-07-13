@@ -6,7 +6,8 @@
       "Bash(npm run build:*)",
       "Bash(rm:*)",
       "Bash(npm run dev:*)",
-      "WebFetch(domain:localhost)"
+      "WebFetch(domain:localhost)",
+      "Bash(pkill:*)"
     ],
     "deny": []
   }

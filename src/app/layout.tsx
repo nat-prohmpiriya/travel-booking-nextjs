@@ -6,6 +6,7 @@ import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { Navbar } from '@/components/navbar';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { InstallPrompt } from '@/components/install-prompt';
+import BottomNavigator from '@/components/bottom-navigator';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -74,6 +75,7 @@ export default function RootLayout({
           <AuthProvider>
             <Navbar />
             <main>{children}</main>
+            <BottomNavigator />
             <InstallPrompt />
           </AuthProvider>
         </AntdRegistry>
