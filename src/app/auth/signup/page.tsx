@@ -7,40 +7,45 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthLayout } from '@/components/auth-layout';
 import { SocialLoginButtons } from '@/components/social-login-buttons';
-import { authService } from '@/services/authService';
-import { SignUpData } from '@/types/user';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignUpPage() {
     const [form] = Form.useForm();
-    const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { signUp, signInWithGoogle, loading } = useAuth();
 
-    const handleEmailSignUp = async (values: SignUpData & { confirmPassword: string; agreeToTerms: boolean }) => {
-        setLoading(true);
+    interface SignUpFormData {
+        firstName: string;
+        lastName: string;
+        email: string;
+        password: string;
+        confirmPassword: string;
+        phone?: string;
+        agreeToTerms: boolean;
+    }
+
+    const handleEmailSignUp = async (values: SignUpFormData) => {
         try {
-            const { confirmPassword, agreeToTerms, ...signUpData } = values;
-            await authService.signUp(signUpData);
+            const { confirmPassword, agreeToTerms, ...userData } = values;
+            await signUp(userData.email, userData.password, {
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                phone: userData.phone
+            });
             message.success('Account created successfully!');
             router.push('/');
         } catch (error: any) {
-            const errorMessage = error?.message || 'Sign up failed. Please try again.';
-            message.error(errorMessage);
-        } finally {
-            setLoading(false);
+            message.error(error.message || 'Sign up failed. Please try again.');
         }
     };
 
     const handleGoogleSignUp = async () => {
-        setLoading(true);
         try {
-            await authService.signInWithGoogle();
+            await signInWithGoogle();
             message.success('Google sign up successful!');
             router.push('/');
         } catch (error: any) {
-            const errorMessage = error?.message || 'Google sign up failed';
-            message.error(errorMessage);
-        } finally {
-            setLoading(false);
+            message.error(error.message || 'Google sign up failed');
         }
     };
 

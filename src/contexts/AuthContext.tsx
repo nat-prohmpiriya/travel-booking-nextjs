@@ -7,26 +7,27 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     signOut as firebaseSignOut,
-    updateProfile
+    updateProfile as firebaseUpdateProfile,
+    signInWithPopup,
+    GoogleAuthProvider
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { firebaseAuth, firebaseDb } from '@/utils/firebaseInit';
-import { UserRole } from '@/types/user';
-import { UserProfile } from '@/types/user';
-import { Timestamp } from 'firebase/firestore';
+import { UserProfile, CreateUserData, UpdateUserData } from '@/types/user';
 
-// Use AuthContextType from types/auth.ts
+const googleProvider = new GoogleAuthProvider();
 
 export interface AuthContextType {
     user: User | null;
     userProfile: UserProfile | null;
     loading: boolean;
-    error: string | null;
     signIn: (email: string, password: string) => Promise<void>;
-    signUp: (email: string, password: string, userData?: any) => Promise<void>;
+    signUp: (email: string, password: string, userData: CreateUserData) => Promise<void>;
+    signInWithGoogle: () => Promise<void>;
     signOut: () => Promise<void>;
     refreshUser: () => Promise<void>;
-    logout: () => Promise<void>;
+    updateProfile: (data: UpdateUserData) => Promise<void>;
+    updatePreferences: (preferences: Partial<UserProfile['preferences']>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -44,37 +45,26 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+    const [user, setUser] = useState<User | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
 
-    // Convert Firebase User to UserProfile
-    const convertToUserProfile = async (firebaseUser: User): Promise<UserProfile> => {
-        const validRoles = ['admin', 'user', 'partner'] as const;
-        type ValidRole = typeof validRoles[number];
+    // Create default user profile
+    const createDefaultProfile = async (user: User, additionalData: CreateUserData = { firstName: '', lastName: '' }): Promise<UserProfile> => {
+        const displayName = user.displayName || `${additionalData.firstName} ${additionalData.lastName}`.trim();
+        const names = displayName.split(' ');
 
-        const createdAt = firebaseUser.metadata.creationTime
-            ? Timestamp.fromDate(new Date(firebaseUser.metadata.creationTime))
-            : Timestamp.fromDate(new Date());
-        const lastLoginAt = firebaseUser.metadata.lastSignInTime
-            ? Timestamp.fromDate(new Date(firebaseUser.metadata.lastSignInTime))
-            : Timestamp.fromDate(new Date());
-        return {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            firstName: firebaseUser.displayName || '',
-            lastName: '',
-            name: firebaseUser.displayName || '',
-            photoURL: firebaseUser.photoURL || undefined,
-            emailVerified: firebaseUser.emailVerified,
-            role: 'user', // default role
-            permissions: [], // default permissions
-            createdAt,
-            lastLoginAt,
-            updatedAt: Timestamp.fromDate(new Date()),
+        const userProfile: UserProfile = {
+            uid: user.uid,
+            email: user.email || '',
+            firstName: additionalData.firstName || names[0] || 'User',
+            lastName: additionalData.lastName || names.slice(1).join(' ') || '',
+            phone: additionalData.phone,
+            photoURL: user.photoURL || undefined,
+            role: 'user',
             preferences: {
                 currency: 'THB',
-                language: 'th',
+                language: 'en',
                 timezone: 'Asia/Bangkok',
                 notifications: {
                     email: true,
@@ -83,96 +73,94 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     marketing: false,
                 },
             },
+            createdAt: serverTimestamp() as Timestamp,
+            updatedAt: serverTimestamp() as Timestamp,
             isActive: true,
         };
+
+        await setDoc(doc(firebaseDb, 'users', user.uid), userProfile);
+        return userProfile;
     };
 
-    // Initialize auth state listener
+    // Get or create user profile
+    const getOrCreateUserProfile = async (user: User, additionalData?: CreateUserData): Promise<UserProfile> => {
+        const userRef = doc(firebaseDb, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+            return userSnap.data() as UserProfile;
+        } else {
+            return await createDefaultProfile(user, additionalData);
+        }
+    };
+
+    // Auth state listener
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
             try {
                 setLoading(true);
-                setError(null);
 
                 if (firebaseUser) {
-                    const profile = await convertToUserProfile(firebaseUser);
+                    setUser(firebaseUser);
+                    const profile = await getOrCreateUserProfile(firebaseUser);
                     setUserProfile(profile);
-                    const token = await firebaseUser.getIdToken();
                 } else {
+                    setUser(null);
                     setUserProfile(null);
                 }
-            } catch (err: any) {
-                console.error('Auth state change error:', err);
-                setError(err.message || 'Authentication error occurred');
+            } catch (error) {
+                console.error('Auth state change error:', error);
+                setUser(null);
                 setUserProfile(null);
             } finally {
                 setLoading(false);
             }
         });
+
         return () => unsubscribe();
     }, []);
 
-    // Create user document in Firestore
-    const createUserDocument = async (
-        uid: string,
-        email: string,
-        additionalData: any = {}
-    ): Promise<void> => {
-        const userRef = doc(firebaseDb, 'users', uid);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            const userData = {
-                email,
-                role: 'user' as UserRole,
-                permissions: [],
-                createdAt: Timestamp.fromDate(new Date()),
-                lastLoginAt: Timestamp.fromDate(new Date()),
-                ...additionalData,
-            };
-            await setDoc(userRef, userData);
-        } else {
-            await updateDoc(userRef, {
-                lastLoginAt: Timestamp.fromDate(new Date()),
-            });
-        }
-    };
-
-    // Sign in
+    // Sign in with email/password
     const signIn = async (email: string, password: string): Promise<void> => {
         try {
             setLoading(true);
-            setError(null);
-            const result = await signInWithEmailAndPassword(firebaseAuth, email, password);
-            await createUserDocument(result.user.uid, email);
-        } catch (err: any) {
-            console.error('Sign in error:', err);
-            setError(err.message || 'Sign in failed');
-            throw err;
+            await signInWithEmailAndPassword(firebaseAuth, email, password);
+        } catch (error) {
+            console.error('Sign in error:', error);
+            throw error;
         } finally {
             setLoading(false);
         }
     };
 
-    // Sign up
-    const signUp = async (
-        email: string,
-        password: string,
-        userData: any = {}
-    ): Promise<void> => {
+    // Sign up with email/password
+    const signUp = async (email: string, password: string, userData: CreateUserData): Promise<void> => {
         try {
             setLoading(true);
-            setError(null);
-            const result = await createUserWithEmailAndPassword(firebaseAuth, email, password);
-            if (userData.displayName) {
-                await updateProfile(result.user, {
-                    displayName: userData.displayName,
-                });
+            const { user } = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+
+            const displayName = `${userData.firstName} ${userData.lastName}`.trim();
+            if (displayName) {
+                await firebaseUpdateProfile(user, { displayName });
             }
-            await createUserDocument(result.user.uid, email, userData);
-        } catch (err: any) {
-            console.error('Sign up error:', err);
-            setError(err.message || 'Sign up failed');
-            throw err;
+
+            await createDefaultProfile(user, userData);
+        } catch (error) {
+            console.error('Sign up error:', error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Sign in with Google
+    const signInWithGoogle = async (): Promise<void> => {
+        try {
+            setLoading(true);
+            await signInWithPopup(firebaseAuth, googleProvider);
+        } catch (error) {
+            console.error('Google sign in error:', error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -182,70 +170,105 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const signOut = async (): Promise<void> => {
         try {
             setLoading(true);
-            setError(null);
             await firebaseSignOut(firebaseAuth);
-        } catch (err: any) {
-            console.error('Sign out error:', err);
-            setError(err.message || 'Sign out failed');
-            throw err;
+        } catch (error) {
+            console.error('Sign out error:', error);
+            throw error;
         } finally {
             setLoading(false);
         }
     };
 
-    // Refresh user data
+    // Refresh user profile
     const refreshUser = async (): Promise<void> => {
-        if (!firebaseAuth.currentUser) return;
+        if (!user) return;
+
         try {
-            const profile = await convertToUserProfile(firebaseAuth.currentUser);
+            const profile = await getOrCreateUserProfile(user);
             setUserProfile(profile);
-            const token = await firebaseAuth.currentUser.getIdToken(true);
-        } catch (err: any) {
-            console.error('Refresh user error:', err);
-            setError(err.message || 'Failed to refresh user data');
+        } catch (error) {
+            console.error('Refresh user error:', error);
         }
     };
 
-    // Check if user has role(s)
-    const hasRole = (role: UserRole | UserRole[]): boolean => {
-        if (!userProfile) return false;
-        const roles = Array.isArray(role) ? role : [role];
-        return roles.includes(userProfile.role);
-    };
+    // Update user profile
+    const updateProfile = async (data: UpdateUserData): Promise<void> => {
+        if (!userProfile) throw new Error('User not authenticated');
 
-    // Check if user has permission
-    const hasPermission = (permission: string): boolean => {
-        if (!userProfile || !userProfile.permissions) return false;
-        if (userProfile.role === 'admin') return true;
-        return userProfile.permissions.includes(permission);
-    };
-
-    const logout = async (): Promise<void> => {
         try {
-            setLoading(true);
-            setError(null);
-            await firebaseSignOut(firebaseAuth);
-            setUserProfile(null);
-            // Optionally clear any auth-related cookies or local storage       
-        } catch (err: any) {
-            console.error('Logout error:', err);
-            setError(err.message || 'Logout failed');
-            throw err;
-        } finally {
-            setLoading(false);
+            // Remove undefined values
+            const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
+                if (value !== undefined) {
+                    acc[key] = value;
+                }
+                return acc;
+            }, {} as any);
+
+            if (Object.keys(cleanData).length === 0) {
+                throw new Error('No valid data to update');
+            }
+
+            const updateData = {
+                ...cleanData,
+                updatedAt: serverTimestamp()
+            };
+
+            await updateDoc(doc(firebaseDb, 'users', userProfile.uid), updateData);
+
+            // Refresh user profile after update
+            await refreshUser();
+        } catch (error) {
+            console.error('Error updating user profile:', error);
+            throw new Error('Failed to update user profile');
+        }
+    };
+
+    // Update user preferences
+    const updatePreferences = async (preferences: Partial<UserProfile['preferences']>): Promise<void> => {
+        if (!userProfile) throw new Error('User not authenticated');
+
+        try {
+            const userDoc = await getDoc(doc(firebaseDb, 'users', userProfile.uid));
+
+            if (!userDoc.exists()) {
+                throw new Error('User profile not found');
+            }
+
+            const currentPreferences = userDoc.data().preferences || {};
+
+            const updatedPreferences = {
+                ...currentPreferences,
+                ...preferences,
+                notifications: {
+                    ...currentPreferences.notifications,
+                    ...preferences.notifications
+                }
+            };
+
+            await updateDoc(doc(firebaseDb, 'users', userProfile.uid), {
+                preferences: updatedPreferences,
+                updatedAt: serverTimestamp()
+            });
+
+            // Refresh user profile after update
+            await refreshUser();
+        } catch (error) {
+            console.error('Error updating user preferences:', error);
+            throw new Error('Failed to update user preferences');
         }
     };
 
     const contextValue: AuthContextType = {
-        user: firebaseAuth.currentUser,
+        user,
         userProfile,
         loading,
-        error,
         signIn,
         signUp,
+        signInWithGoogle,
         signOut,
         refreshUser,
-        logout,
+        updateProfile,
+        updatePreferences,
     };
 
     return (

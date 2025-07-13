@@ -33,10 +33,8 @@ import {
 } from '@ant-design/icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { userService } from '@/services/userService';
-import { UserProfile, UpdateUserProfileData } from '@/types/user';
-import { storageService, } from '@/services/storageService';
-import { UploadProgress } from '@/types';
+import { storageService } from '@/services/storageService';
+import { UploadProgress } from '@/types/common';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 
@@ -45,14 +43,13 @@ const { Option } = Select;
 
 
 export default function ProfilePage() {
-    const { userProfile, logout } = useAuth();
+    const { userProfile, signOut, updateProfile, updatePreferences } = useAuth();
     const router = useRouter();
 
     const [form] = Form.useForm();
     const [passwordForm] = Form.useForm();
     const [loading, setLoading] = useState<boolean>(false);
     const [passwordModalVisible, setPasswordModalVisible] = useState<boolean>(false);
-    const [profileData, setProfileData] = useState<UserProfile | null>(null);
     const [uploadProgress, setUploadProgress] = useState<number>(0);
     const [uploading, setUploading] = useState<boolean>(false);
 
@@ -62,20 +59,18 @@ export default function ProfilePage() {
             return;
         }
 
-        if (userProfile) {
-            setProfileData(userProfile);
-            form.setFieldsValue({
-                firstName: userProfile.firstName,
-                lastName: userProfile.lastName,
-                email: userProfile.email,
-                phone: userProfile.phone,
-                dateOfBirth: userProfile.dateOfBirth,
-                gender: userProfile.gender,
-                nationality: userProfile.nationality,
-                address: userProfile.address,
-                preferences: userProfile.preferences
-            });
-        }
+        // Set form values when userProfile is available
+        form.setFieldsValue({
+            firstName: userProfile.firstName,
+            lastName: userProfile.lastName,
+            email: userProfile.email,
+            phone: userProfile.phone,
+            dateOfBirth: userProfile.dateOfBirth,
+            gender: userProfile.gender,
+            nationality: userProfile.nationality,
+            address: userProfile.address,
+            preferences: userProfile.preferences
+        });
     }, [userProfile, form, router]);
 
     const handleProfileUpdate = async (values: any) => {
@@ -83,7 +78,7 @@ export default function ProfilePage() {
 
         setLoading(true);
         try {
-            const updateData: UpdateUserProfileData = {
+            const updateData = {
                 firstName: values.firstName,
                 lastName: values.lastName,
                 phone: values.phone,
@@ -94,27 +89,7 @@ export default function ProfilePage() {
                 preferences: values.preferences
             };
 
-            await userService.updateUserProfile(userProfile.uid, updateData);
-
-            // Update local state
-            if (profileData) {
-                setProfileData({
-                    ...profileData,
-                    ...updateData,
-                    preferences: {
-                        ...profileData?.preferences,
-                        ...updateData.preferences,
-                        currency: updateData.preferences?.currency ?? profileData?.preferences?.currency ?? "",
-                        language: updateData.preferences?.language ?? profileData?.preferences?.language ?? "",
-                        timezone: updateData.preferences?.timezone ?? profileData?.preferences?.timezone ?? "",
-                        notifications: {
-                            ...profileData?.preferences?.notifications,
-                            ...updateData.preferences?.notifications
-                        }
-                    }
-                });
-            }
-
+            await updateProfile(updateData);
             message.success('Profile updated successfully!');
         } catch (error) {
             console.error('Error updating profile:', error);
@@ -161,21 +136,16 @@ export default function ProfilePage() {
             const result = await storageService.replaceProfilePicture(
                 userProfile.uid,
                 file,
-                profileData?.photoURL ? extractStoragePath(profileData.photoURL) : undefined,
+                userProfile?.photoURL ? extractStoragePath(userProfile.photoURL) : undefined,
                 (progress: UploadProgress) => {
                     setUploadProgress(progress.percentage);
                 }
             );
 
             // Update user profile with new photo URL
-            await userService.updateUserProfile(userProfile.uid, {
+            await updateProfile({
                 photoURL: result.url
             });
-
-            // Update local state
-            if (profileData) {
-                setProfileData({ ...profileData, photoURL: result.url });
-            }
 
             message.success('Profile picture updated successfully!');
         } catch (error: any) {
@@ -208,7 +178,7 @@ export default function ProfilePage() {
             okType: 'danger',
             onOk: async () => {
                 try {
-                    await logout();
+                    await signOut();
                     message.success('Account deleted successfully');
                     router.push('/');
                 } catch (error) {
@@ -253,7 +223,7 @@ export default function ProfilePage() {
                                 <div className="relative">
                                     <Avatar
                                         size={100}
-                                        src={profileData?.photoURL || userProfile.photoURL}
+                                        src={userProfile.photoURL}
                                         icon={<UserOutlined />}
                                     />
                                     <Upload
@@ -468,8 +438,8 @@ export default function ProfilePage() {
                                         children: (
                                             <Form
                                                 layout="vertical"
-                                                initialValues={profileData?.preferences}
-                                                onFinish={(values) => handleProfileUpdate({ preferences: values })}
+                                                initialValues={userProfile?.preferences}
+                                                onFinish={(values) => updatePreferences(values)}
                                             >
                                                 <Row gutter={24}>
                                                     <Col xs={24} sm={8}>

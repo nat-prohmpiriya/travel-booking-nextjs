@@ -2,26 +2,15 @@ import { Timestamp } from 'firebase/firestore';
 
 export type UserRole = 'admin' | 'partner' | 'user';
 
-// =================== USER INTERFACES ===================
+// =================== SIMPLIFIED USER INTERFACES ===================
 export interface UserProfile {
     uid: string;
     email: string;
-    emailVerified?: boolean;
     firstName: string;
     lastName: string;
-    name?: string;
     phone?: string;
-    dateOfBirth?: string;
-    gender?: 'male' | 'female' | 'other' | 'prefer-not-to-say';
-    nationality?: string;
     photoURL?: string;
-    address?: {
-        street?: string;
-        city?: string;
-        state?: string;
-        postalCode?: string;
-        country?: string;
-    };
+    role: UserRole;
     preferences: {
         currency: string;
         language: string;
@@ -36,25 +25,26 @@ export interface UserProfile {
     createdAt: Timestamp;
     updatedAt: Timestamp;
     isActive?: boolean;
-    role: UserRole; // required
-    permissions?: string[];
-    lastLoginAt?: Timestamp;
+    // Optional fields for detailed profile
+    dateOfBirth?: string;
+    gender?: 'male' | 'female' | 'other' | 'prefer-not-to-say';
+    nationality?: string;
+    address?: {
+        street?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+        country?: string;
+    };
 }
 
-export interface CreateUserProfileData {
-    uid: string;
-    email: string;
+export interface CreateUserData {
     firstName: string;
     lastName: string;
     phone?: string;
-    photoURL?: string;
-    preferences?: Partial<UserProfile['preferences']>;
-    createdAt?: Timestamp;
-    updatedAt?: Timestamp;
-    role?: UserProfile['role']; // default to 'user' if not provided
 }
 
-export interface UpdateUserProfileData {
+export interface UpdateUserData {
     firstName?: string;
     lastName?: string;
     phone?: string;

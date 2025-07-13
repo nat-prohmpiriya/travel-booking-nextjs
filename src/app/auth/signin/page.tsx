@@ -7,38 +7,30 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthLayout } from '@/components/auth-layout';
 import { SocialLoginButtons } from '@/components/social-login-buttons';
-import { authService, } from '@/services/authService';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignInPage() {
     const [form] = Form.useForm();
-    const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { signIn, signInWithGoogle, loading } = useAuth();
 
     const handleEmailLogin = async (values: { email: string; password: string }) => {
-        setLoading(true);
         try {
-            await authService.signInWithEmail(values.email, values.password);
+            await signIn(values.email, values.password);
             message.success('Login successful!');
             router.push('/');
         } catch (error: any) {
-            const errorMessage = error?.message || 'Login failed. Please try again.';
-            message.error(errorMessage);
-        } finally {
-            setLoading(false);
+            message.error(error.message || 'Login failed. Please try again.');
         }
     };
 
     const handleGoogleLogin = async () => {
-        setLoading(true);
         try {
-            await authService.signInWithGoogle();
+            await signInWithGoogle();
             message.success('Google login successful!');
             router.push('/');
         } catch (error: any) {
-            const errorMessage = error?.message || 'Google login failed';
-            message.error(errorMessage);
-        } finally {
-            setLoading(false);
+            message.error(error.message || 'Google login failed');
         }
     };
 
