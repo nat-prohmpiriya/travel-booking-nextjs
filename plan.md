@@ -10,7 +10,14 @@
   - PWA enabled (offline support, installable)
   - mock image use Unsplash
 
-## TASK LIST 
+## TASK LIST
+- [x] setup project with Next.js, TypeScript, and Ant Design
+- [x] setup Zustand for state management
+- [x] setup Firebase for auth, Firestore, and storage 
+- [x] setup PWA with offline support and installable
+- [] authen email, google
+- [] authen custom firebase + line
+- [] bokking hotel 
 - [] 
 
 
