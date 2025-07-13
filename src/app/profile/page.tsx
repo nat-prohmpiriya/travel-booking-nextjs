@@ -18,7 +18,8 @@ import {
     Modal,
     Alert,
     Breadcrumb,
-    Tabs
+    Tabs,
+    Spin
 } from 'antd';
 import {
     UserOutlined,
@@ -43,7 +44,7 @@ const { Option } = Select;
 
 
 export default function ProfilePage() {
-    const { userProfile, signOut, updateProfile, updatePreferences } = useAuth();
+    const { userProfile, signOut, loading: authLoading, updateProfile, updatePreferences } = useAuth();
     const router = useRouter();
 
     const [form] = Form.useForm();
@@ -54,22 +55,22 @@ export default function ProfilePage() {
     const [uploading, setUploading] = useState<boolean>(false);
 
     useEffect(() => {
-        if (!userProfile) {
+        if (!userProfile && !authLoading) {
             router.push('/auth/signin');
             return;
         }
 
         // Set form values when userProfile is available
         form.setFieldsValue({
-            firstName: userProfile.firstName,
-            lastName: userProfile.lastName,
-            email: userProfile.email,
-            phone: userProfile.phone,
-            dateOfBirth: userProfile.dateOfBirth,
-            gender: userProfile.gender,
-            nationality: userProfile.nationality,
-            address: userProfile.address,
-            preferences: userProfile.preferences
+            firstName: userProfile?.firstName,
+            lastName: userProfile?.lastName,
+            email: userProfile?.email,
+            phone: userProfile?.phone,
+            dateOfBirth: userProfile?.dateOfBirth,
+            gender: userProfile?.gender,
+            nationality: userProfile?.nationality,
+            address: userProfile?.address,
+            preferences: userProfile?.preferences
         });
     }, [userProfile, form, router]);
 
@@ -81,6 +82,7 @@ export default function ProfilePage() {
             const updateData = {
                 firstName: values.firstName,
                 lastName: values.lastName,
+                displayName: values.displayName,
                 phone: values.phone,
                 dateOfBirth: values.dateOfBirth,
                 gender: values.gender,
@@ -188,8 +190,12 @@ export default function ProfilePage() {
         });
     };
 
-    if (!userProfile) {
-        return null;
+    if (authLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Spin size="large" />
+            </div>
+        );
     }
 
     return (
@@ -223,7 +229,7 @@ export default function ProfilePage() {
                                 <div className="relative">
                                     <Avatar
                                         size={100}
-                                        src={userProfile.photoURL}
+                                        src={userProfile?.photoURL}
                                         icon={<UserOutlined />}
                                     />
                                     <Upload
@@ -248,14 +254,14 @@ export default function ProfilePage() {
                                 </div>
                                 <div className="flex-1">
                                     <Title level={2} className="!mb-2">
-                                        {(userProfile.firstName || '') + ' ' + (userProfile.lastName || '') || 'User'}
+                                        {(userProfile?.firstName || '') + ' ' + (userProfile?.lastName || '') || 'User'}
                                     </Title>
-                                    <Text className="text-gray-600 block mb-2">{userProfile.email}</Text>
+                                    <Text className="text-gray-600 block mb-2">{userProfile?.email}</Text>
                                     <Text className="text-gray-500">
                                         Member since {dayjs(
-                                            typeof userProfile.createdAt?.toDate === 'function'
-                                                ? userProfile.createdAt.toDate()
-                                                : new Date(userProfile.createdAt as unknown as string)
+                                            typeof userProfile?.createdAt?.toDate === 'function'
+                                                ? userProfile?.createdAt.toDate()
+                                                : new Date(userProfile?.createdAt as unknown as string)
                                         ).format('MMM YYYY')}
                                     </Text>
                                 </div>
@@ -290,6 +296,17 @@ export default function ProfilePage() {
                                                 requiredMark={false}
                                             >
                                                 <Row gutter={24}>
+                                                    <Col xs={24} sm={24}>
+                                                        <Form.Item
+                                                            name="displayName"
+                                                            label="Display Name"
+                                                            rules={[{ required: false }]}
+                                                        >
+                                                            <Input prefix={<UserOutlined />} placeholder="Display name (optional)" />
+                                                        </Form.Item>
+                                                    </Col>
+                                                </Row>
+                                                <Row gutter={24}>
                                                     <Col xs={24} sm={12}>
                                                         <Form.Item
                                                             name="firstName"
@@ -309,6 +326,7 @@ export default function ProfilePage() {
                                                         </Form.Item>
                                                     </Col>
                                                 </Row>
+
 
                                                 <Row gutter={24}>
                                                     <Col xs={24} sm={12}>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown, message, Badge, Drawer } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, message, Badge, Drawer, Spin } from 'antd';
 import {
     BellOutlined,
     UserOutlined,
@@ -20,17 +20,18 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation'
+import { auth } from 'firebase-admin';
 
 const { Header } = Layout;
 
 export const Navbar: React.FC = () => {
     const router = useRouter();
     const pathname = usePathname();
-    const { user, userProfile, loading, logout } = useAuth();
+    const { user, userProfile, loading: authLoading, signOut } = useAuth();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const isLoggedIn = !!user;
-    const displayName = userProfile?.name || 'User';
+    const displayName = userProfile?.displayName || 'User';
 
     // Main navigation menu items
     const mainMenuItems = [
@@ -131,7 +132,7 @@ export const Navbar: React.FC = () => {
                 break;
             case 'logout':
                 try {
-                    await logout();
+                    await signOut();
                     message.success('Logged out successfully');
                     router.push('/');
                 } catch (error) {
@@ -186,43 +187,45 @@ export const Navbar: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
-                {isLoggedIn ? (
-                    <Dropdown
-                        menu={{
-                            items: userMenuItems,
-                            onClick: handleUserMenuClick
-                        }}
-                        placement="bottomRight"
-                        arrow
-                    >
-                        <div className="flex items-center cursor-pointer hover:bg-gray-50 px-2 py-1 rounded-lg transition-colors">
-                            <Avatar
-                                src={userProfile?.photoURL || undefined}
-                                icon={<UserOutlined />}
-                                className=""
-                            />
-                            <span className="ml-2 text-gray-700 hidden sm:block">{displayName}</span>
+                {authLoading
+                    ? <Spin size="small" />
+                    : isLoggedIn ? (
+                        <Dropdown
+                            menu={{
+                                items: userMenuItems,
+                                onClick: handleUserMenuClick
+                            }}
+                            placement="bottomRight"
+                            arrow
+                        >
+                            <div className="flex items-center cursor-pointer hover:bg-gray-50 px-2 py-1 rounded-lg transition-colors">
+                                <Avatar
+                                    src={userProfile?.photoURL || undefined}
+                                    icon={<UserOutlined />}
+                                    className=""
+                                />
+                                <span className="ml-2 text-gray-700 hidden sm:block">{displayName}</span>
+                            </div>
+                        </Dropdown>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <Button
+                                type="text"
+                                onClick={() => router.push('/auth/signup')}
+                                className="hidden sm:inline-flex"
+                            >
+                                Sign Up
+                            </Button>
+                            <Button
+                                type="primary"
+                                icon={<LoginOutlined />}
+                                onClick={handleLogin}
+                                size="middle"
+                            >
+                                <span className="hidden sm:inline">Login</span>
+                            </Button>
                         </div>
-                    </Dropdown>
-                ) : (
-                    <div className="flex items-center gap-2">
-                        <Button
-                            type="text"
-                            onClick={() => router.push('/auth/signup')}
-                            className="hidden sm:inline-flex"
-                        >
-                            Sign Up
-                        </Button>
-                        <Button
-                            type="primary"
-                            icon={<LoginOutlined />}
-                            onClick={handleLogin}
-                            size="middle"
-                        >
-                            <span className="hidden sm:inline">Login</span>
-                        </Button>
-                    </div>
-                )}
+                    )}
             </div>
 
             {/* Mobile Navigation Drawer */}

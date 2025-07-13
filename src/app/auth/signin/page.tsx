@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function SignInPage() {
     const [form] = Form.useForm();
     const router = useRouter();
-    const { signIn, signInWithGoogle, loading } = useAuth();
+    const { signIn, signInWithGoogle, loading, userProfile } = useAuth();
 
     const handleEmailLogin = async (values: { email: string; password: string }) => {
         try {
@@ -43,6 +43,12 @@ export default function SignInPage() {
             message.error('LINE login failed');
         }
     };
+
+    if (userProfile) {
+        // Redirect to last visited page if user is already logged in
+        router.back();
+        return null;
+    }
 
     return (
         <AuthLayout
