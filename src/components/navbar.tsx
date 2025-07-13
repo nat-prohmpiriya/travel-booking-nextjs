@@ -30,7 +30,7 @@ export const Navbar: React.FC = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const isLoggedIn = !!user;
-    const displayName = userProfile?.name || user?.displayName || 'User';
+    const displayName = userProfile?.name || 'User';
 
     // Main navigation menu items
     const mainMenuItems = [
@@ -197,7 +197,7 @@ export const Navbar: React.FC = () => {
                     >
                         <div className="flex items-center cursor-pointer hover:bg-gray-50 px-2 py-1 rounded-lg transition-colors">
                             <Avatar
-                                src={user?.photoURL || undefined}
+                                src={userProfile?.photoURL || undefined}
                                 icon={<UserOutlined />}
                                 className=""
                             />

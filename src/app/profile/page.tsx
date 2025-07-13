@@ -45,7 +45,7 @@ const { Option } = Select;
 
 
 export default function ProfilePage() {
-    const { user, userProfile, logout } = useAuth();
+    const { userProfile, logout } = useAuth();
     const router = useRouter();
 
     const [form] = Form.useForm();
@@ -76,10 +76,10 @@ export default function ProfilePage() {
                 preferences: userProfile.preferences
             });
         }
-    }, [user, userProfile, form, router]);
+    }, [userProfile, form, router]);
 
     const handleProfileUpdate = async (values: any) => {
-        if (!user) return;
+        if (!userProfile) return;
 
         setLoading(true);
         try {
@@ -94,7 +94,7 @@ export default function ProfilePage() {
                 preferences: values.preferences
             };
 
-            await userService.updateUserProfile(user.uid, updateData);
+            await userService.updateUserProfile(userProfile.uid, updateData);
 
             // Update local state
             if (profileData) {
@@ -141,7 +141,7 @@ export default function ProfilePage() {
     };
 
     const handleAvatarUpload = async (file: File) => {
-        if (!user) {
+        if (!userProfile) {
             message.error('User not authenticated');
             return false;
         }
@@ -159,7 +159,7 @@ export default function ProfilePage() {
 
             // Upload with progress tracking
             const result = await storageService.replaceProfilePicture(
-                user.uid,
+                userProfile.uid,
                 file,
                 profileData?.photoURL ? extractStoragePath(profileData.photoURL) : undefined,
                 (progress: UploadProgress) => {
@@ -168,7 +168,7 @@ export default function ProfilePage() {
             );
 
             // Update user profile with new photo URL
-            await userService.updateUserProfile(user.uid, {
+            await userService.updateUserProfile(userProfile.uid, {
                 photoURL: result.url
             });
 
@@ -218,7 +218,7 @@ export default function ProfilePage() {
         });
     };
 
-    if (!user) {
+    if (!userProfile) {
         return null;
     }
 
@@ -253,7 +253,7 @@ export default function ProfilePage() {
                                 <div className="relative">
                                     <Avatar
                                         size={100}
-                                        src={profileData?.photoURL || user.photoURL}
+                                        src={profileData?.photoURL || userProfile.photoURL}
                                         icon={<UserOutlined />}
                                     />
                                     <Upload
@@ -278,11 +278,15 @@ export default function ProfilePage() {
                                 </div>
                                 <div className="flex-1">
                                     <Title level={2} className="!mb-2">
-                                        {user.displayName || 'User'}
+                                        {(userProfile.firstName || '') + ' ' + (userProfile.lastName || '') || 'User'}
                                     </Title>
-                                    <Text className="text-gray-600 block mb-2">{user.email}</Text>
+                                    <Text className="text-gray-600 block mb-2">{userProfile.email}</Text>
                                     <Text className="text-gray-500">
-                                        Member since {dayjs(user.metadata.creationTime).format('MMM YYYY')}
+                                        Member since {dayjs(
+                                            typeof userProfile.createdAt?.toDate === 'function'
+                                                ? userProfile.createdAt.toDate()
+                                                : new Date(userProfile.createdAt as unknown as string)
+                                        ).format('MMM YYYY')}
                                     </Text>
                                 </div>
                                 <div>
